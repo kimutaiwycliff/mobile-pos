@@ -3,9 +3,11 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, useTheme, Button, Card, Avatar, Divider } from 'react-native-paper';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useRouter } from 'expo-router';
 
 export default function MoreScreen() {
     const theme = useTheme();
+    const router = useRouter();
     const { user, logout, isLoading } = useAuthStore();
 
     const handleLogout = async () => {
@@ -51,7 +53,7 @@ export default function MoreScreen() {
                     <Button
                         mode="outlined"
                         icon="account"
-                        onPress={() => { }}
+                        onPress={() => router.push('/more/profile')}
                         style={styles.menuButton}
                         contentStyle={styles.menuButtonContent}
                     >
@@ -61,7 +63,7 @@ export default function MoreScreen() {
                     <Button
                         mode="outlined"
                         icon="store"
-                        onPress={() => { }}
+                        onPress={() => router.push('/more/locations')}
                         style={styles.menuButton}
                         contentStyle={styles.menuButtonContent}
                     >
@@ -71,7 +73,7 @@ export default function MoreScreen() {
                     <Button
                         mode="outlined"
                         icon="cog"
-                        onPress={() => { }}
+                        onPress={() => router.push('/more/settings')}
                         style={styles.menuButton}
                         contentStyle={styles.menuButtonContent}
                     >
