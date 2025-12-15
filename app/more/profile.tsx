@@ -31,8 +31,6 @@ export default function ProfileScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <Stack.Screen options={{ title: 'Profile' }} />
-
             <View style={styles.header}>
                 <Avatar.Text
                     size={80}
@@ -40,7 +38,7 @@ export default function ProfileScreen() {
                     style={{ backgroundColor: theme.colors.primary, marginBottom: 16 }}
                 />
                 <Text variant="headlineSmall">{user?.email}</Text>
-            </View>
+            </View >
 
             <View style={styles.form}>
                 <TextInput
@@ -61,7 +59,7 @@ export default function ProfileScreen() {
                     Update Profile
                 </Button>
             </View>
-        </View>
+        </View >
     );
 }
 

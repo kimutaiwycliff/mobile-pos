@@ -18,8 +18,6 @@ export default function SettingsScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <Stack.Screen options={{ title: 'Settings' }} />
-
             <List.Section>
                 <List.Subheader>Appearance</List.Subheader>
                 <List.Item
@@ -32,7 +30,7 @@ export default function SettingsScreen() {
                         />
                     )}
                 />
-            </List.Section>
+            </List.Section >
 
             <List.Section>
                 <List.Subheader>General</List.Subheader>
@@ -42,7 +40,7 @@ export default function SettingsScreen() {
                     left={() => <List.Icon icon="information" />}
                 />
             </List.Section>
-        </View>
+        </View >
     );
 }
 

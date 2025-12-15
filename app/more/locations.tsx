@@ -28,8 +28,6 @@ export default function LocationsScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <Stack.Screen options={{ title: 'Locations' }} />
-
             {isLoading ? (
                 <View style={styles.loading}>
                     <ActivityIndicator size="large" />
@@ -60,8 +58,9 @@ export default function LocationsScreen() {
                         </TouchableOpacity>
                     )}
                 />
-            )}
-        </View>
+            )
+            }
+        </View >
     );
 }
 
