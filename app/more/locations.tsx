@@ -38,7 +38,7 @@ export default function LocationsScreen() {
                 <FlatList
                     data={locations}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.list}
+                    contentContainerStyle={[styles.list, { flexGrow: 1, justifyContent: 'center' }]}
                     renderItem={({ item }) => (
                         <TouchableOpacity onPress={() => setLocation(item.id)}>
                             <Card style={[
