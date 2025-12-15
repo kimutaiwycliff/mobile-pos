@@ -20,64 +20,66 @@ export function ProductCard({ product, onPress, onAddToCart }: ProductCardProps)
 
     return (
         <Card style={styles.card} onPress={onPress}>
-            {/* Product Image */}
-            <View style={styles.imageContainer}>
-                {product.image_url ? (
-                    <Image
-                        source={{ uri: product.image_url }}
-                        style={styles.image}
-                        resizeMode="cover"
-                    />
-                ) : (
-                    <View style={[styles.imagePlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
-                        <Text style={{ color: theme.colors.onSurfaceVariant }}>No Image</Text>
-                    </View>
-                )}
+            <View style={styles.innerContainer}>
+                {/* Product Image */}
+                <View style={styles.imageContainer}>
+                    {product.image_url ? (
+                        <Image
+                            source={{ uri: product.image_url }}
+                            style={styles.image}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <View style={[styles.imagePlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
+                            <Text style={{ color: theme.colors.onSurfaceVariant }}>No Image</Text>
+                        </View>
+                    )}
 
-                {/* Stock Badge */}
-                {isOutOfStock && (
-                    <View style={[styles.badge, { backgroundColor: theme.colors.error }]}>
-                        <Text style={[styles.badgeText, { color: theme.colors.onError }]}>
-                            Out of Stock
-                        </Text>
-                    </View>
-                )}
-                {isLowStock && !isOutOfStock && (
-                    <View style={[styles.badge, { backgroundColor: theme.colors.tertiary }]}>
-                        <Text style={[styles.badgeText, { color: theme.colors.onTertiary }]}>
-                            Low Stock
-                        </Text>
-                    </View>
-                )}
-            </View>
+                    {/* Stock Badge */}
+                    {isOutOfStock && (
+                        <View style={[styles.badge, { backgroundColor: theme.colors.error }]}>
+                            <Text style={[styles.badgeText, { color: theme.colors.onError }]}>
+                                Out of Stock
+                            </Text>
+                        </View>
+                    )}
+                    {isLowStock && !isOutOfStock && (
+                        <View style={[styles.badge, { backgroundColor: theme.colors.tertiary }]}>
+                            <Text style={[styles.badgeText, { color: theme.colors.onTertiary }]}>
+                                Low Stock
+                            </Text>
+                        </View>
+                    )}
+                </View>
 
-            {/* Product Info */}
-            <Card.Content style={styles.content}>
-                <Text variant="titleSmall" numberOfLines={2} style={{ color: theme.colors.onSurface }}>
-                    {product.name}
-                </Text>
-
-                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 4 }}>
-                    SKU: {product.sku}
-                </Text>
-
-                <View style={styles.priceRow}>
-                    <Text variant="titleMedium" style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
-                        {formatCurrency(product.selling_price || 0)}
+                {/* Product Info */}
+                <Card.Content style={styles.content}>
+                    <Text variant="titleSmall" numberOfLines={2} style={{ color: theme.colors.onSurface }}>
+                        {product.name}
                     </Text>
 
-                    <IconButton
-                        icon="plus-circle"
-                        size={28}
-                        iconColor={theme.colors.primary}
-                        onPress={(e) => {
-                            e.stopPropagation();
-                            onAddToCart();
-                        }}
-                        disabled={isOutOfStock}
-                    />
-                </View>
-            </Card.Content>
+                    <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 4 }}>
+                        SKU: {product.sku}
+                    </Text>
+
+                    <View style={styles.priceRow}>
+                        <Text variant="titleMedium" style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
+                            {formatCurrency(product.selling_price || 0)}
+                        </Text>
+
+                        <IconButton
+                            icon="plus-circle"
+                            size={28}
+                            iconColor={theme.colors.primary}
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                onAddToCart();
+                            }}
+                            disabled={isOutOfStock}
+                        />
+                    </View>
+                </Card.Content>
+            </View>
         </Card>
     );
 }
@@ -88,6 +90,9 @@ const styles = StyleSheet.create({
         margin: 4,
         marginVertical: 8,
         elevation: 2,
+        borderRadius: 12,
+    },
+    innerContainer: {
         borderRadius: 12,
         overflow: 'hidden',
     },
