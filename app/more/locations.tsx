@@ -4,7 +4,6 @@ import { Text, useTheme, RadioButton, Card, ActivityIndicator } from 'react-nati
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useCartStore } from '@/stores/useCartStore';
-import { Stack } from 'expo-router';
 
 export default function LocationsScreen() {
     const theme = useTheme();
