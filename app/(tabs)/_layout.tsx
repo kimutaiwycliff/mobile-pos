@@ -3,9 +3,15 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from 'react-native-paper';
+import { useUserRole } from '@/hooks/useUserRole';
 
 export default function TabsLayout() {
     const theme = useTheme();
+    const { isAdmin, isLoading } = useUserRole();
+
+    if (isLoading) {
+        return null; // Or a loading spinner
+    }
 
     return (
         <Tabs
@@ -31,37 +37,45 @@ export default function TabsLayout() {
                     ),
                 }}
             />
+
             <Tabs.Screen
                 name="orders"
                 options={{
                     title: 'Orders',
+                    href: isAdmin ? '/orders' : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="receipt-text" size={size} color={color} />
                     ),
                 }}
             />
+
             <Tabs.Screen
                 name="inventory"
                 options={{
                     title: 'Inventory',
+                    href: isAdmin ? '/inventory' : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="package-variant" size={size} color={color} />
                     ),
                 }}
             />
+
             <Tabs.Screen
                 name="analytics"
                 options={{
                     title: 'Analytics',
+                    href: isAdmin ? '/analytics' : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="chart-line" size={size} color={color} />
                     ),
                 }}
             />
+
             <Tabs.Screen
                 name="more"
                 options={{
                     title: 'More',
+                    href: isAdmin ? '/more' : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="menu" size={size} color={color} />
                     ),
