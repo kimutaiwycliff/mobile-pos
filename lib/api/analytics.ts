@@ -59,7 +59,7 @@ export async function getSalesMetrics(
             .gte('created_at', startDate.toISOString())
             .lte('created_at', endDate.toISOString());
 
-        if (locationId && locationId !== 'all') {
+        if (locationId && locationId !== 'all' && locationId !== 'default-location-id') {
             query = query.eq('location_id', locationId);
         }
 
@@ -104,7 +104,7 @@ export async function getSalesTrend(
             .eq('status', 'completed')
             .gte('created_at', startDate.toISOString());
 
-        if (locationId && locationId !== 'all') {
+        if (locationId && locationId !== 'all' && locationId !== 'default-location-id') {
             query = query.eq('location_id', locationId);
         }
 
@@ -150,8 +150,7 @@ export async function getInventoryMetrics(locationId?: string): Promise<Inventor
 
         const selectQuery = `
             quantity,
-            reorder_point,
-            product:products(cost_price, selling_price),
+            product:products(cost_price, selling_price, low_stock_threshold),
             variant:product_variants(cost_price, selling_price)
         `;
 
@@ -159,7 +158,7 @@ export async function getInventoryMetrics(locationId?: string): Promise<Inventor
             .from('inventory')
             .select(selectQuery);
 
-        if (locationId && locationId !== 'all') {
+        if (locationId && locationId !== 'all' && locationId !== 'default-location-id') {
             query = query.eq('location_id', locationId);
         }
 
@@ -179,7 +178,7 @@ export async function getInventoryMetrics(locationId?: string): Promise<Inventor
             totalStockValue += qty * cost;
 
             if (qty <= 0) outOfStockCount++;
-            else if (qty <= (item.reorder_point || 0)) lowStockCount++;
+            else if (qty <= (item.product?.low_stock_threshold || 0)) lowStockCount++;
         });
 
         return {
