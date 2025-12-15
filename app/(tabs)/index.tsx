@@ -18,7 +18,7 @@ import { supabase } from '@/lib/supabase/client';
 export default function POSScreen() {
     const theme = useTheme();
     const { products, isLoading, error, search, clearSearch } = useProductSearch();
-    const { items, totals, itemCount, addItem, updateQuantity, removeItem, clearCart, applyItemDiscount, error: cartError, setError } = useCartStore();
+    const { items, totals, itemCount, addItem, updateQuantity, removeItem, clearCart, applyItemDiscount, error: cartError, setError, locationId } = useCartStore();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [showCart, setShowCart] = useState(false);
@@ -81,6 +81,19 @@ export default function POSScreen() {
 
             if (productData) {
                 // Found a product
+                if (!productData.has_variants) {
+                    const { data: inventoryData } = await supabase
+                        .from('inventory')
+                        .select('quantity')
+                        .eq('product_id', productData.id)
+                        .eq('location_id', locationId)
+                        .maybeSingle();
+
+                    const trackInventory = productData.track_inventory ?? true;
+                    // If tracking, use inventory quantity (default 0). If not, big number
+                    const quantity = trackInventory ? (inventoryData?.quantity ?? 0) : 10000;
+                    (productData as any).quantity = quantity;
+                }
                 // Check if it has variants. If so, we still might need to select a variant if the barcode belongs to the PARENT product?
                 // Usually parent product barcode implies "default" or "select variant".
                 // If the barcode is for the parent product, we should handle it like a click.
@@ -101,6 +114,20 @@ export default function POSScreen() {
 
             if (variantData) {
                 // Found a variant
+                // Fetch Inventory
+                const { data: inventoryData } = await supabase
+                    .from('inventory')
+                    .select('quantity')
+                    .eq('variant_id', variantData.id)
+                    .eq('location_id', locationId)
+                    .maybeSingle();
+
+                const parent = (variantData as any).product;
+                const trackInventory = parent?.track_inventory ?? true;
+
+                const quantity = trackInventory ? (inventoryData?.quantity ?? 0) : 10000;
+                (variantData as any).quantity = quantity;
+
                 // We need to make sure the parent product is attached or at least pass correct data to addItem
                 // addItem expects ProductVariant structure.
                 handleVariantSelect(variantData as unknown as ProductVariant);
