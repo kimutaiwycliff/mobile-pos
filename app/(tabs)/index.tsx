@@ -16,7 +16,7 @@ import { useRouter } from 'expo-router';
 export default function POSScreen() {
     const theme = useTheme();
     const { products, isLoading, error, search, clearSearch } = useProductSearch();
-    const { items, totals, itemCount, addItem, updateQuantity, removeItem, clearCart } = useCartStore();
+    const { items, totals, itemCount, addItem, updateQuantity, removeItem, clearCart, applyItemDiscount } = useCartStore();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [showCart, setShowCart] = useState(false);
@@ -141,6 +141,7 @@ export default function POSScreen() {
                                 item={item}
                                 onUpdateQuantity={(qty) => updateQuantity(item.id, qty)}
                                 onRemove={() => removeItem(item.id)}
+                                onApplyDiscount={(id, discount) => applyItemDiscount(id, discount)}
                             />
                         )}
                     />

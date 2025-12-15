@@ -75,7 +75,6 @@ export default function TabsLayout() {
                 name="more"
                 options={{
                     title: 'More',
-                    href: isAdmin ? '/more' : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="menu" size={size} color={color} />
                     ),
