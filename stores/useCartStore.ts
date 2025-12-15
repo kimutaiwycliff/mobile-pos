@@ -33,7 +33,8 @@ const generateCartItemId = () => {
 // Helper to get default location (will be replaced with actual default location logic)
 const getDefaultLocationId = (): string => {
     // TODO: Get from settings store or API
-    return 'default-location-id';
+    // Main Store ID from database
+    return 'eb9fa467-91f1-47cd-9d59-bf9afa88edb4';
 };
 
 export const useCartStore = create<CartStore>((set, get) => ({

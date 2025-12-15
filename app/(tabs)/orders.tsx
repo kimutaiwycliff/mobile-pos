@@ -2,12 +2,14 @@
 
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, RefreshControl } from 'react-native';
-import { Text, useTheme, SegmentedButtons, Card, Button, Portal, Modal, TextInput, Divider, FAB } from 'react-native-paper';
+import { Text, useTheme, SegmentedButtons, Card, Button, Divider, FAB } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
 import { getOrders, addOrderPayment } from '@/lib/api/orders';
 import { Order } from '@/types/database.types';
 import { formatCurrency, formatDate } from '@/utils/formatters';
+import { LayawayList } from '@/components/orders/LayawayList';
+import { PaymentModal } from '@/components/orders/PaymentModal';
 
 export default function OrdersScreen() {
     const theme = useTheme();
@@ -15,7 +17,6 @@ export default function OrdersScreen() {
     const [filter, setFilter] = useState('all'); // all, layaway, completed
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [paymentModalVisible, setPaymentModalVisible] = useState(false);
-    const [paymentAmount, setPaymentAmount] = useState('');
     const [isSubmittingInfo, setIsSubmittingInfo] = useState(false);
 
     // Fetch orders
@@ -32,7 +33,6 @@ export default function OrdersScreen() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orders'] });
             setPaymentModalVisible(false);
-            setPaymentAmount('');
             setSelectedOrder(null);
         },
         onError: (error) => {
@@ -43,14 +43,11 @@ export default function OrdersScreen() {
 
     const handlePayBalance = (order: Order) => {
         setSelectedOrder(order);
-        setPaymentAmount(''); // Reset
         setPaymentModalVisible(true);
     };
 
-    const submitPayment = () => {
+    const submitPayment = (amount: number) => {
         if (!selectedOrder) return;
-        const amount = parseFloat(paymentAmount);
-        if (isNaN(amount) || amount <= 0) return;
 
         setIsSubmittingInfo(true);
         payMutation.mutate({ orderId: selectedOrder.id, amount }, {
@@ -137,56 +134,32 @@ export default function OrdersScreen() {
                 />
             </View>
 
-            <FlashList
-                data={orders}
-                renderItem={renderItem}
-                contentContainerStyle={styles.list}
-                refreshControl={
-                    <RefreshControl refreshing={isLoading} onRefresh={refetch} />
-                }
-                ListEmptyComponent={
-                    <View style={styles.empty}>
-                        <Text>No orders found</Text>
-                    </View>
-                }
-            />
+            {filter === 'layaway' ? (
+                <LayawayList onOrderPress={handlePayBalance} />
+            ) : (
+                <FlashList
+                    data={orders}
+                    renderItem={renderItem}
+                    contentContainerStyle={styles.list}
+                    refreshControl={
+                        <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+                    }
+                    ListEmptyComponent={
+                        <View style={styles.empty}>
+                            <Text>No orders found</Text>
+                        </View>
+                    }
+                />
+            )}
 
             {/* Payment Modal */}
-            <Portal>
-                <Modal
-                    visible={paymentModalVisible}
-                    onDismiss={() => setPaymentModalVisible(false)}
-                    contentContainerStyle={[styles.modal, { backgroundColor: theme.colors.background }]}
-                >
-                    <Text variant="headlineSmall" style={{ marginBottom: 16 }}>Take Payment</Text>
-                    {selectedOrder && (
-                        <View>
-                            <Text style={{ marginBottom: 16 }}>
-                                Balance Due: {formatCurrency(Math.max(0, selectedOrder.total_amount - (selectedOrder.paid_amount || 0)))}
-                            </Text>
-                            <TextInput
-                                label="Amount Received"
-                                value={paymentAmount}
-                                onChangeText={setPaymentAmount}
-                                keyboardType="numeric"
-                                mode="outlined"
-                                style={{ marginBottom: 16 }}
-                            />
-                            <View style={styles.modalActions}>
-                                <Button onPress={() => setPaymentModalVisible(false)} style={{ flex: 1 }}>Cancel</Button>
-                                <Button
-                                    mode="contained"
-                                    onPress={submitPayment}
-                                    loading={isSubmittingInfo}
-                                    style={{ flex: 1 }}
-                                >
-                                    Confirm
-                                </Button>
-                            </View>
-                        </View>
-                    )}
-                </Modal>
-            </Portal>
+            <PaymentModal
+                visible={paymentModalVisible}
+                onDismiss={() => setPaymentModalVisible(false)}
+                onConfirm={submitPayment}
+                order={selectedOrder}
+                isProcessing={isSubmittingInfo}
+            />
         </View>
     );
 }
@@ -214,14 +187,4 @@ const styles = StyleSheet.create({
         padding: 24,
         alignItems: 'center',
     },
-    modal: {
-        margin: 20,
-        padding: 24,
-        borderRadius: 12,
-    },
-    modalActions: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 8,
-    }
 });
