@@ -1,8 +1,8 @@
 // POS Screen (Home)
 
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
-import { Text, useTheme, Searchbar, FAB, Portal, Modal, Divider, Snackbar } from 'react-native-paper';
+import { View, StyleSheet, FlatList, Alert } from 'react-native';
+import { Text, useTheme, Searchbar, FAB, Portal, Modal, Divider, Snackbar, IconButton } from 'react-native-paper';
 import { useProductSearch } from '@/hooks/useProductSearch';
 import { useCartStore } from '@/stores/useCartStore';
 import { ProductCard } from '@/components/pos/ProductCard';
@@ -10,9 +10,10 @@ import { CartItem } from '@/components/pos/CartItem';
 import { CheckoutModal } from '@/components/pos/CheckoutModal';
 import { VariantSelectionModal } from '@/components/pos/VariantSelectionModal';
 import { ReceiptModal } from '@/components/pos/ReceiptModal';
+import { BarcodeScannerModal } from '@/components/pos/BarcodeScannerModal';
 import { Product, ProductVariant } from '@/types/database.types';
 import { formatCurrency } from '@/utils/formatters';
-import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase/client';
 
 export default function POSScreen() {
     const theme = useTheme();
@@ -30,6 +31,9 @@ export default function POSScreen() {
     // Receipt State
     const [showReceipt, setShowReceipt] = useState(false);
     const [receiptOrderId, setReceiptOrderId] = useState<string | null>(null);
+
+    // Scanner State
+    const [showScanner, setShowScanner] = useState(false);
 
     const handleSearch = (query: string) => {
         setSearchQuery(query);
@@ -63,21 +67,80 @@ export default function POSScreen() {
         setShowReceipt(true);
     };
 
+    const handleBarcodeScanned = async (barcode: string) => {
+        setShowScanner(false);
+
+        try {
+            // 1. Check Product Barcode
+            const { data: productData, error: productError } = await supabase
+                .from('products')
+                .select('*')
+                .eq('barcode', barcode)
+                .eq('is_active', true)
+                .maybeSingle(); // Use maybeSingle to avoid 406 or error on 0 rows if handled properly
+
+            if (productData) {
+                // Found a product
+                // Check if it has variants. If so, we still might need to select a variant if the barcode belongs to the PARENT product?
+                // Usually parent product barcode implies "default" or "select variant".
+                // If the barcode is for the parent product, we should handle it like a click.
+                handleAddToCart(productData as Product);
+                return;
+            }
+
+            // 2. Check Variant Barcode
+            const { data: variantData, error: variantError } = await supabase
+                .from('product_variants')
+                .select(`
+                    *,
+                    product:products(*)
+                `)
+                .eq('barcode', barcode)
+                .eq('is_active', true)
+                .maybeSingle();
+
+            if (variantData) {
+                // Found a variant
+                // We need to make sure the parent product is attached or at least pass correct data to addItem
+                // addItem expects ProductVariant structure.
+                handleVariantSelect(variantData as unknown as ProductVariant);
+                return;
+            }
+
+            // Not found
+            Alert.alert('Not Found', `No product found with barcode: ${barcode}`);
+
+        } catch (err) {
+            console.error('Scan Error:', err);
+            Alert.alert('Error', 'Failed to lookup product.');
+        }
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            {/* Search Bar */}
+            {/* Search Bar Row */}
             <View style={styles.searchContainer}>
-                <Searchbar
-                    placeholder="Search products..."
-                    value={searchQuery}
-                    onChangeText={handleSearch}
-                    onClearIconPress={handleClearSearch}
-                    style={styles.searchBar}
-                />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Searchbar
+                        placeholder="Search products..."
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                        onClearIconPress={handleClearSearch}
+                        style={[styles.searchBar, { flex: 1 }]}
+                    />
+                    <IconButton
+                        icon="barcode-scan"
+                        mode="contained"
+                        onPress={() => setShowScanner(true)}
+                        containerColor={theme.colors.secondaryContainer}
+                        iconColor={theme.colors.onSecondaryContainer}
+                        size={28}
+                    />
+                </View>
             </View>
 
 
-            {/* Error Banner - Restored for Debugging */}
+            {/* Error Banner */}
             {error && (
                 <View style={{ padding: 10, backgroundColor: theme.colors.errorContainer, margin: 10, borderRadius: 8 }}>
                     <Text style={{ color: theme.colors.error, textAlign: 'center' }}>Error: {error}</Text>
@@ -98,7 +161,7 @@ export default function POSScreen() {
                             {isLoading ? 'Loading...' : (searchQuery ? 'No products found' : 'No products loaded')}
                         </Text>
                         <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
-                            {error ? 'An error occurred.' : 'Please try searching again.'}
+                            {error ? 'An error occurred.' : 'Tap the scan button or search to find items.'}
                         </Text>
                     </View>
                 }
@@ -244,6 +307,13 @@ export default function POSScreen() {
                 product={selectedProductForVariant}
                 onDismiss={() => setShowVariantModal(false)}
                 onSelectVariant={handleVariantSelect}
+            />
+
+            {/* Barcode Scanner Modal */}
+            <BarcodeScannerModal
+                visible={showScanner}
+                onDismiss={() => setShowScanner(false)}
+                onBarcodeScanned={handleBarcodeScanned}
             />
 
             {/* Error Snackbar */}
