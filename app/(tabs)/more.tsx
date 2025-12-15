@@ -1,28 +1,146 @@
 // More Screen
 
-import { View, StyleSheet } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Text, useTheme, Button, Card, Avatar, Divider } from 'react-native-paper';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function MoreScreen() {
     const theme = useTheme();
+    const { user, logout, isLoading } = useAuthStore();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <Text variant="headlineMedium" style={{ color: theme.colors.onBackground }}>
-                More Screen
-            </Text>
-            <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
-                Additional features and settings will be here
-            </Text>
-        </View>
+        <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            {/* User Profile Card */}
+            <Card style={styles.card}>
+                <Card.Content>
+                    <View style={styles.profileHeader}>
+                        <Avatar.Text
+                            size={64}
+                            label={user?.email?.charAt(0).toUpperCase() || 'U'}
+                            style={{ backgroundColor: theme.colors.primary }}
+                        />
+                        <View style={styles.profileInfo}>
+                            <Text variant="titleLarge" style={{ color: theme.colors.onSurface }}>
+                                {user?.user_metadata?.full_name || 'User'}
+                            </Text>
+                            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                                {user?.email}
+                            </Text>
+                        </View>
+                    </View>
+                </Card.Content>
+            </Card>
+
+            <Divider style={styles.divider} />
+
+            {/* Menu Items */}
+            <Card style={styles.card}>
+                <Card.Content>
+                    <Text variant="titleMedium" style={{ color: theme.colors.onSurface, marginBottom: 16 }}>
+                        Menu
+                    </Text>
+
+                    <Button
+                        mode="outlined"
+                        icon="account"
+                        onPress={() => { }}
+                        style={styles.menuButton}
+                        contentStyle={styles.menuButtonContent}
+                    >
+                        Profile Settings
+                    </Button>
+
+                    <Button
+                        mode="outlined"
+                        icon="store"
+                        onPress={() => { }}
+                        style={styles.menuButton}
+                        contentStyle={styles.menuButtonContent}
+                    >
+                        Locations
+                    </Button>
+
+                    <Button
+                        mode="outlined"
+                        icon="cog"
+                        onPress={() => { }}
+                        style={styles.menuButton}
+                        contentStyle={styles.menuButtonContent}
+                    >
+                        App Settings
+                    </Button>
+                </Card.Content>
+            </Card>
+
+            <Divider style={styles.divider} />
+
+            {/* Logout Button */}
+            <Card style={styles.card}>
+                <Card.Content>
+                    <Button
+                        mode="contained"
+                        icon="logout"
+                        onPress={handleLogout}
+                        loading={isLoading}
+                        disabled={isLoading}
+                        buttonColor={theme.colors.error}
+                        style={styles.logoutButton}
+                        contentStyle={styles.menuButtonContent}
+                    >
+                        Logout
+                    </Button>
+                </Card.Content>
+            </Card>
+
+            {/* App Info */}
+            <View style={styles.footer}>
+                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
+                    POS Mobile v1.0.0
+                </Text>
+            </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
+    },
+    card: {
+        margin: 16,
+        marginBottom: 0,
+    },
+    profileHeader: {
+        flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
+    },
+    profileInfo: {
+        marginLeft: 16,
+        flex: 1,
+    },
+    divider: {
+        marginVertical: 16,
+    },
+    menuButton: {
+        marginBottom: 12,
+    },
+    menuButtonContent: {
+        paddingVertical: 8,
+        justifyContent: 'flex-start',
+    },
+    logoutButton: {
+        marginTop: 8,
+    },
+    footer: {
+        padding: 24,
+        alignItems: 'center',
     },
 });

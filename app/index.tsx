@@ -1,8 +1,6 @@
-// App Index - Redirect to tabs
-
-import { Redirect } from 'expo-router';
+// App Index
 
 export default function Index() {
-    // For now, redirect to tabs (will add auth check later)
-    return <Redirect href="/(tabs)" />;
+    // Root layout handles all routing based on auth state
+    return null;
 }
