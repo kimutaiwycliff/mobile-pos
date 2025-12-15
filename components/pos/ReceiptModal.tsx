@@ -1,42 +1,90 @@
 // Receipt Modal Component
 
-import React from 'react';
-import { View, StyleSheet, ScrollView, Share } from 'react-native';
-import { Modal, Portal, Text, useTheme, Button, Divider } from 'react-native-paper';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, Share, ActivityIndicator } from 'react-native';
+import { Modal, Portal, Text, useTheme, Button, Divider, DataTable } from 'react-native-paper';
 import { formatCurrency, formatDate } from '@/utils/formatters';
-import { createOrder } from '@/lib/api/orders'; // Just for type reference if needed, ideally use type
+import { supabase } from '@/lib/supabase/client';
+import { Order, OrderItem, Payment } from '@/types/database.types';
 
 interface ReceiptModalProps {
     visible: boolean;
     onDismiss: () => void;
-    // We might pass order ID and fetch, or pass full order details. 
-    // Passing minimal details for now to simulate the "Just Completed" receipt.
-    // Ideally we fetch the full order to show invoice number etc.
     orderId: string | null;
 }
 
+type OrderWithDetails = Order & {
+    items: OrderItem[];
+    payments: Payment[];
+};
+
 export function ReceiptModal({ visible, onDismiss, orderId }: ReceiptModalProps) {
     const theme = useTheme();
+    const [order, setOrder] = useState<OrderWithDetails | null>(null);
+    const [loading, setLoading] = useState(false);
 
-    // TODO: Fetch order details using orderId
-    // For now we just show a success message or minimal data? 
-    // Without fetching, we can't show items.
-    // Let's assume we can't fetch easily here without a hook.
-    // But for a "Receipt" we really need the data.
+    useEffect(() => {
+        if (visible && orderId) {
+            fetchOrderDetails(orderId);
+        } else {
+            setOrder(null);
+        }
+    }, [visible, orderId]);
 
-    // We can add a "View Order" button which navigates to Order Details?
-    // Or we assume the parent passed the data.
-    // Let's just create a nice "Order Success" view for now.
+    const fetchOrderDetails = async (id: string) => {
+        setLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('orders')
+                .select(`
+                    *,
+                    items:order_items(*),
+                    payments(*)
+                `)
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+            setOrder(data as OrderWithDetails);
+        } catch (err) {
+            console.error('Error fetching receipt:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleShare = async () => {
+        if (!order) return;
+
+        const itemsList = order.items.map(item =>
+            `${item.quantity}x ${item.product_name} (${formatCurrency(item.total_amount)})`
+        ).join('\n');
+
+        const message = `
+Receipt for Order #${order.order_number}
+Date: ${new Date(order.created_at).toLocaleString()}
+
+Items:
+${itemsList}
+
+Subtotal: ${formatCurrency(order.subtotal)}
+Tax: ${formatCurrency(order.tax_amount)}
+Discount: -${formatCurrency(order.discount_amount)}
+Total: ${formatCurrency(order.total_amount)}
+
+Thank you for shopping with us!
+        `.trim();
+
         try {
             await Share.share({
-                message: `Receipt for Order #${orderId}. Thank you for your business!`,
+                message,
             });
         } catch (error) {
             console.error(error);
         }
     };
+
+    if (!visible) return null;
 
     return (
         <Portal>
@@ -45,40 +93,127 @@ export function ReceiptModal({ visible, onDismiss, orderId }: ReceiptModalProps)
                 onDismiss={onDismiss}
                 contentContainerStyle={[styles.modal, { backgroundColor: theme.colors.background }]}
             >
-                <View style={styles.content}>
-                    <View style={styles.iconContainer}>
-                        <Text style={{ fontSize: 64 }}>✅</Text>
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color={theme.colors.primary} />
+                        <Text style={{ marginTop: 16 }}>Loading Receipt...</Text>
                     </View>
+                ) : order ? (
+                    <View style={styles.container}>
+                        <View style={styles.header}>
+                            <View style={styles.iconContainer}>
+                                <Text style={{ fontSize: 48 }}>✅</Text>
+                            </View>
+                            <Text variant="headlineSmall" style={{ fontWeight: 'bold' }}>Payment Successful</Text>
+                            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                                {new Date(order.created_at).toLocaleString()}
+                            </Text>
+                            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                                Order #{order.order_number}
+                            </Text>
+                        </View>
 
-                    <Text variant="headlineMedium" style={{ textAlign: 'center', marginBottom: 8, fontWeight: 'bold' }}>
-                        Order Completed!
-                    </Text>
+                        <Divider style={{ marginVertical: 16 }} />
 
-                    <Text variant="bodyLarge" style={{ textAlign: 'center', color: theme.colors.onSurfaceVariant, marginBottom: 24 }}>
-                        {orderId ? `Order ID: ${orderId.slice(0, 8)}...` : ''}
-                    </Text>
+                        <ScrollView style={styles.scrollContent}>
+                            {/* Items Table */}
+                            <DataTable>
+                                <DataTable.Header>
+                                    <DataTable.Title style={{ flex: 2 }}>Item</DataTable.Title>
+                                    <DataTable.Title numeric>Qty</DataTable.Title>
+                                    <DataTable.Title numeric>Total</DataTable.Title>
+                                </DataTable.Header>
 
-                    <Divider style={{ marginBottom: 24 }} />
+                                {order.items.map((item) => (
+                                    <DataTable.Row key={item.id}>
+                                        <DataTable.Cell style={{ flex: 2 }}>
+                                            <Text variant="bodySmall">{item.product_name}</Text>
+                                            {item.discount_amount > 0 && (
+                                                <Text variant="labelSmall" style={{ color: theme.colors.error }}>
+                                                    {'\n'}- {formatCurrency(item.discount_amount)} off
+                                                </Text>
+                                            )}
+                                        </DataTable.Cell>
+                                        <DataTable.Cell numeric>{item.quantity}</DataTable.Cell>
+                                        <DataTable.Cell numeric>
+                                            <Text variant="bodySmall">{formatCurrency(item.total_amount)}</Text>
+                                        </DataTable.Cell>
+                                    </DataTable.Row>
+                                ))}
+                            </DataTable>
 
-                    <View style={styles.actions}>
-                        <Button
-                            mode="outlined"
-                            onPress={handleShare}
-                            icon="share-variant"
-                            style={{ marginBottom: 12 }}
-                        >
-                            Share Receipt
-                        </Button>
+                            <Divider style={{ marginVertical: 16 }} />
 
-                        <Button
-                            mode="contained"
-                            onPress={onDismiss}
-                            contentStyle={{ paddingVertical: 8 }}
-                        >
-                            Start New Order
-                        </Button>
+                            {/* Totals */}
+                            <View style={styles.row}>
+                                <Text variant="bodyMedium">Subtotal</Text>
+                                <Text variant="bodyMedium">{formatCurrency(order.subtotal)}</Text>
+                            </View>
+
+                            {order.tax_amount > 0 && (
+                                <View style={styles.row}>
+                                    <Text variant="bodyMedium">Tax (Included)</Text>
+                                    <Text variant="bodyMedium">{formatCurrency(order.tax_amount)}</Text>
+                                </View>
+                            )}
+
+                            {order.discount_amount > 0 && (
+                                <View style={styles.row}>
+                                    <Text variant="bodyMedium" style={{ color: theme.colors.error }}>Discount</Text>
+                                    <Text variant="bodyMedium" style={{ color: theme.colors.error }}>
+                                        -{formatCurrency(order.discount_amount)}
+                                    </Text>
+                                </View>
+                            )}
+
+                            <Divider style={{ marginVertical: 8 }} />
+
+                            <View style={styles.row}>
+                                <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>Total</Text>
+                                <Text variant="titleMedium" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
+                                    {formatCurrency(order.total_amount)}
+                                </Text>
+                            </View>
+
+                            <Divider style={{ marginVertical: 16 }} />
+
+                            {/* Payments */}
+                            <Text variant="labelLarge" style={{ marginBottom: 8 }}>Payment Method</Text>
+                            {order.payments.map((p) => (
+                                <View key={p.id} style={styles.row}>
+                                    <Text variant="bodySmall" style={{ textTransform: 'capitalize' }}>
+                                        {p.payment_method}
+                                    </Text>
+                                    <Text variant="bodySmall">{formatCurrency(p.amount)}</Text>
+                                </View>
+                            ))}
+                        </ScrollView>
+
+                        <View style={styles.actions}>
+                            <Button
+                                mode="outlined"
+                                onPress={handleShare}
+                                icon="share-variant"
+                                style={{ flex: 1, marginRight: 8 }}
+                            >
+                                Share
+                            </Button>
+
+                            <Button
+                                mode="contained"
+                                onPress={onDismiss}
+                                style={{ flex: 1, marginLeft: 8 }}
+                            >
+                                Done
+                            </Button>
+                        </View>
                     </View>
-                </View>
+                ) : (
+                    <View style={styles.errorContainer}>
+                        <Text>Failed to load receipt.</Text>
+                        <Button onPress={onDismiss}>Close</Button>
+                    </View>
+                )}
             </Modal>
         </Portal>
     );
@@ -88,15 +223,39 @@ const styles = StyleSheet.create({
     modal: {
         margin: 20,
         borderRadius: 16,
-        padding: 24,
+        padding: 20,
+        height: '85%',
     },
-    content: {
+    container: {
+        flex: 1,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    header: {
         alignItems: 'center',
     },
     iconContainer: {
-        marginBottom: 16,
+        marginBottom: 8,
+    },
+    scrollContent: {
+        flex: 1,
+    },
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
     },
     actions: {
-        width: '100%',
+        flexDirection: 'row',
+        marginTop: 16,
+        marginBottom: 8,
     }
 });
