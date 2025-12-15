@@ -40,7 +40,7 @@ export async function getInventory(
         const selectQuery = `
             *,
             product:products(name, sku, barcode, image_url, selling_price, cost_price),
-            variant:product_variants(name, sku, barcode, image_url, selling_price, cost_price)
+            variant:product_variants(name, sku, barcode, image_path, selling_price, cost_price)
         `;
 
         let query = supabase
