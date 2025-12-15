@@ -84,9 +84,9 @@ export interface ProductVariant {
     sku: string;                   // Variant SKU (unique)
     barcode: string;               // Variant barcode (unique)
     option_values: Record<string, string>; // JSON object: {size: "L", color: "Red"}
-    cost_price: number | null;     // Override cost price
-    selling_price: number | null;  // Override selling price
-    compare_at_price: number | null; // Override compare price
+    cost_price: number;     // Override cost price
+    selling_price: number ;  // Override selling price
+    compare_at_price: number; // Override compare price
     weight: number | null;         // Override weight
     image_url: string | null;      // Variant-specific image
     is_active: boolean;            // Active status
