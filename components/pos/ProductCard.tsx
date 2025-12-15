@@ -84,13 +84,17 @@ export function ProductCard({ product, onPress, onAddToCart }: ProductCardProps)
 
 const styles = StyleSheet.create({
     card: {
-        margin: 8,
         flex: 1,
-        maxWidth: '48%',
+        margin: 4,
+        marginVertical: 8,
+        elevation: 2,
+        borderRadius: 12,
+        overflow: 'hidden',
     },
     imageContainer: {
         position: 'relative',
-        height: 150,
+        height: 160,
+        backgroundColor: '#f5f5f5',
     },
     image: {
         width: '100%',
@@ -116,6 +120,8 @@ const styles = StyleSheet.create({
     },
     content: {
         paddingTop: 12,
+        paddingHorizontal: 8, // Override default 16
+        paddingBottom: 12,    // Override default 16
     },
     priceRow: {
         flexDirection: 'row',

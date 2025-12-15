@@ -8,7 +8,8 @@ import { useCartStore } from '@/stores/useCartStore';
 import { ProductCard } from '@/components/pos/ProductCard';
 import { CartItem } from '@/components/pos/CartItem';
 import { CheckoutModal } from '@/components/pos/CheckoutModal';
-import { Product } from '@/types/database.types';
+import { VariantSelectionModal } from '@/components/pos/VariantSelectionModal';
+import { Product, ProductVariant } from '@/types/database.types';
 import { formatCurrency } from '@/utils/formatters';
 import { useRouter } from 'expo-router';
 
@@ -21,6 +22,10 @@ export default function POSScreen() {
     const [showCart, setShowCart] = useState(false);
     const [showCheckout, setShowCheckout] = useState(false);
 
+    // Variant Selection State
+    const [selectedProductForVariant, setSelectedProductForVariant] = useState<Product | null>(null);
+    const [showVariantModal, setShowVariantModal] = useState(false);
+
     const handleSearch = (query: string) => {
         setSearchQuery(query);
         search(query);
@@ -32,11 +37,23 @@ export default function POSScreen() {
     };
 
     const handleAddToCart = (product: Product) => {
-        addItem(product, 1, false);
+        if (product.has_variants) {
+            setSelectedProductForVariant(product);
+            setShowVariantModal(true);
+        } else {
+            addItem(product);
+        }
+    };
+
+    const handleVariantSelect = (variant: ProductVariant) => {
+        addItem(variant, 1, true);
+        setShowVariantModal(false);
+        setSelectedProductForVariant(null);
     };
 
     const handleCheckoutSuccess = (orderId: string) => {
         setShowCheckout(false);
+        clearCart();
         // TODO: Show success message or navigate to order details
         console.log('Order created:', orderId);
     };
@@ -68,6 +85,7 @@ export default function POSScreen() {
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 contentContainerStyle={[styles.productGrid, { flexGrow: 1 }]}
+                columnWrapperStyle={{ justifyContent: 'space-between', gap: 8 }}
                 style={{ flex: 1 }}
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
@@ -205,6 +223,14 @@ export default function POSScreen() {
                 visible={showCheckout}
                 onDismiss={() => setShowCheckout(false)}
                 onSuccess={handleCheckoutSuccess}
+            />
+
+            {/* Variant Selection Modal */}
+            <VariantSelectionModal
+                visible={showVariantModal}
+                product={selectedProductForVariant}
+                onDismiss={() => setShowVariantModal(false)}
+                onSelectVariant={handleVariantSelect}
             />
         </View>
     );

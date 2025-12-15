@@ -20,11 +20,6 @@ export function useProductSearch(): UseProductSearchResult {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        if (!searchQuery) {
-            setProducts([]);
-            return;
-        }
-
         const timeoutId = setTimeout(async () => {
             try {
                 setIsLoading(true);
