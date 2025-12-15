@@ -73,9 +73,6 @@ export const PAYMENT_STATUSES = [
 export const PAYMENT_METHODS = [
     { value: 'cash', label: 'Cash' },
     { value: 'mpesa', label: 'M-Pesa' },
-    { value: 'card', label: 'Card' },
-    { value: 'bank_transfer', label: 'Bank Transfer' },
-    { value: 'credit', label: 'Store Credit' },
 ] as const;
 
 // Stock Movement Types

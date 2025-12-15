@@ -12,8 +12,7 @@ interface CreateOrderInput {
     totalDiscount: number;
     taxAmount: number;
     total: number;
-    paymentMethod: string;
-    amountPaid: number;
+    payments: { paymentMethod: string; amount: number }[];
     notes: string | null;
     // Layaway specific fields
     isLayaway?: boolean;
@@ -26,14 +25,17 @@ interface CreateOrderInput {
 interface CreateOrderResponse {
     order: Order;
     orderItems: OrderItem[];
-    payment: Payment;
+    payments: Payment[];
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResponse> {
     try {
         const isLayaway = input.isLayaway || false;
         const status = isLayaway ? 'layaway' : 'completed';
-        const paymentStatus = isLayaway ? 'partial' : 'paid';
+        const paymentStatus = isLayaway ? 'partial' : 'completed';
+
+        // Calculate total paid from payments array
+        const amountPaid = input.payments.reduce((sum, p) => sum + p.amount, 0);
 
         // 1. Create order
         const { data: order, error: orderError } = await supabase
@@ -48,7 +50,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
                 discount_amount: input.totalDiscount,
                 tax_amount: input.taxAmount,
                 total_amount: input.total,
-                paid_amount: input.amountPaid, // Amount paid so far
+                paid_amount: amountPaid,
                 notes: input.notes,
                 // Layaway fields
                 layaway_customer_name: input.layawayCustomerName || null,
@@ -86,20 +88,21 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
         if (itemsError) throw itemsError;
         if (!orderItems) throw new Error('Failed to create order items');
 
-        // 3. Create payment (Deposit or Full)
-        const { data: payment, error: paymentError } = await supabase
-            .from('payments')
-            .insert({
-                order_id: order.id,
-                payment_method: input.paymentMethod,
-                amount: input.amountPaid,
-                status: 'completed',
-            })
-            .select()
-            .single();
+        // 3. Create payments (Multiple)
+        const paymentsData = input.payments.map(p => ({
+            order_id: order.id,
+            payment_method: p.paymentMethod,
+            amount: p.amount,
+            status: 'completed',
+        }));
 
-        if (paymentError) throw paymentError;
-        if (!payment) throw new Error('Failed to create payment');
+        const { data: payments, error: paymentsError } = await supabase
+            .from('payments')
+            .insert(paymentsData)
+            .select();
+
+        if (paymentsError) throw paymentsError;
+        if (!payments) throw new Error('Failed to create payments');
 
         // 4. TODO: Update inventory (reduce stock)
         // This would be done via a Supabase function or trigger
@@ -107,7 +110,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
         return {
             order,
             orderItems,
-            payment,
+            payments,
         };
     } catch (error) {
         console.error('Create order error:', error);
@@ -175,7 +178,7 @@ export async function addOrderPayment(orderId: string, amount: number, paymentMe
         };
 
         if (isFullyPaid) {
-            updates.payment_status = 'paid';
+            updates.payment_status = 'completed';
             updates.status = 'completed'; // Move from layaway to completed
             updates.completed_at = new Date().toISOString();
         } else {
