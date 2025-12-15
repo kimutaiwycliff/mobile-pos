@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Modal, Portal, Text, useTheme, TextInput, Button, HelperText, RadioButton } from 'react-native-paper';
+import { Modal, Portal, Text, useTheme, TextInput, Button, HelperText, SegmentedButtons } from 'react-native-paper';
 import { Order } from '@/types/database.types';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -61,18 +61,24 @@ export function PaymentModal({ visible, onDismiss, onConfirm, order, isProcessin
                         </Text>
 
                         <Text variant="titleMedium" style={{ marginBottom: 8, marginTop: 8 }}>Payment Method</Text>
-                        <RadioButton.Group onValueChange={value => setPaymentMethod(value as 'cash' | 'mpesa')} value={paymentMethod}>
-                            <View style={styles.radioRow}>
-                                <View style={styles.radioItem}>
-                                    <RadioButton value="cash" />
-                                    <Text>Cash</Text>
-                                </View>
-                                <View style={styles.radioItem}>
-                                    <RadioButton value="mpesa" />
-                                    <Text>M-Pesa</Text>
-                                </View>
-                            </View>
-                        </RadioButton.Group>
+
+                        <SegmentedButtons
+                            value={paymentMethod}
+                            onValueChange={value => setPaymentMethod(value as 'cash' | 'mpesa')}
+                            buttons={[
+                                {
+                                    value: 'cash',
+                                    label: 'Cash',
+                                    icon: 'cash',
+                                },
+                                {
+                                    value: 'mpesa',
+                                    label: 'M-Pesa',
+                                    icon: 'phone',
+                                },
+                            ]}
+                            style={{ marginBottom: 12 }}
+                        />
 
                         <TextInput
                             label="Payment Amount"
@@ -83,8 +89,9 @@ export function PaymentModal({ visible, onDismiss, onConfirm, order, isProcessin
                             }}
                             keyboardType="numeric"
                             mode="outlined"
-                            style={{ marginBottom: 4, marginTop: 12 }}
+                            style={{ marginBottom: 4 }}
                             error={!!error}
+                            left={<TextInput.Affix text="KSh " />}
                         />
                         {!!error && <HelperText type="error">{error}</HelperText>}
                     </View>
@@ -101,7 +108,7 @@ export function PaymentModal({ visible, onDismiss, onConfirm, order, isProcessin
                         disabled={isProcessing}
                         style={{ flex: 1 }}
                     >
-                        Confirm
+                        Confirm Payment
                     </Button>
                 </View>
             </Modal>
@@ -114,15 +121,6 @@ const styles = StyleSheet.create({
         margin: 20,
         padding: 24,
         borderRadius: 12,
-    },
-    radioRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 24,
-    },
-    radioItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
     },
     actions: {
         flexDirection: 'row',
