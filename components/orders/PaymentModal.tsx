@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Modal, Portal, Text, useTheme, TextInput, Button, HelperText } from 'react-native-paper';
+import { Modal, Portal, Text, useTheme, TextInput, Button, HelperText, RadioButton } from 'react-native-paper';
 import { Order } from '@/types/database.types';
 import { formatCurrency } from '@/utils/formatters';
 
 interface PaymentModalProps {
     visible: boolean;
     onDismiss: () => void;
-    onConfirm: (amount: number) => void;
+    onConfirm: (amount: number, method: 'cash' | 'mpesa') => void;
     order: Order | null;
     isProcessing: boolean;
 }
@@ -15,11 +15,13 @@ interface PaymentModalProps {
 export function PaymentModal({ visible, onDismiss, onConfirm, order, isProcessing }: PaymentModalProps) {
     const theme = useTheme();
     const [amount, setAmount] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mpesa'>('cash');
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (visible) {
             setAmount('');
+            setPaymentMethod('cash');
             setError('');
         }
     }, [visible]);
@@ -37,7 +39,7 @@ export function PaymentModal({ visible, onDismiss, onConfirm, order, isProcessin
             return;
         }
 
-        onConfirm(value);
+        onConfirm(value, paymentMethod);
     };
 
     return (
@@ -58,6 +60,20 @@ export function PaymentModal({ visible, onDismiss, onConfirm, order, isProcessin
                             Balance Due: <Text style={{ color: theme.colors.error, fontWeight: 'bold' }}>{formatCurrency(balance)}</Text>
                         </Text>
 
+                        <Text variant="titleMedium" style={{ marginBottom: 8, marginTop: 8 }}>Payment Method</Text>
+                        <RadioButton.Group onValueChange={value => setPaymentMethod(value as 'cash' | 'mpesa')} value={paymentMethod}>
+                            <View style={styles.radioRow}>
+                                <View style={styles.radioItem}>
+                                    <RadioButton value="cash" />
+                                    <Text>Cash</Text>
+                                </View>
+                                <View style={styles.radioItem}>
+                                    <RadioButton value="mpesa" />
+                                    <Text>M-Pesa</Text>
+                                </View>
+                            </View>
+                        </RadioButton.Group>
+
                         <TextInput
                             label="Payment Amount"
                             value={amount}
@@ -67,7 +83,7 @@ export function PaymentModal({ visible, onDismiss, onConfirm, order, isProcessin
                             }}
                             keyboardType="numeric"
                             mode="outlined"
-                            style={{ marginBottom: 4 }}
+                            style={{ marginBottom: 4, marginTop: 12 }}
                             error={!!error}
                         />
                         {!!error && <HelperText type="error">{error}</HelperText>}
@@ -98,6 +114,15 @@ const styles = StyleSheet.create({
         margin: 20,
         padding: 24,
         borderRadius: 12,
+    },
+    radioRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 24,
+    },
+    radioItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     actions: {
         flexDirection: 'row',

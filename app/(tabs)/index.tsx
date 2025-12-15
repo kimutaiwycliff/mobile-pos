@@ -9,6 +9,7 @@ import { ProductCard } from '@/components/pos/ProductCard';
 import { CartItem } from '@/components/pos/CartItem';
 import { CheckoutModal } from '@/components/pos/CheckoutModal';
 import { VariantSelectionModal } from '@/components/pos/VariantSelectionModal';
+import { ReceiptModal } from '@/components/pos/ReceiptModal';
 import { Product, ProductVariant } from '@/types/database.types';
 import { formatCurrency } from '@/utils/formatters';
 import { useRouter } from 'expo-router';
@@ -25,6 +26,10 @@ export default function POSScreen() {
     // Variant Selection State
     const [selectedProductForVariant, setSelectedProductForVariant] = useState<Product | null>(null);
     const [showVariantModal, setShowVariantModal] = useState(false);
+
+    // Receipt State
+    const [showReceipt, setShowReceipt] = useState(false);
+    const [receiptOrderId, setReceiptOrderId] = useState<string | null>(null);
 
     const handleSearch = (query: string) => {
         setSearchQuery(query);
@@ -54,8 +59,8 @@ export default function POSScreen() {
     const handleCheckoutSuccess = (orderId: string) => {
         setShowCheckout(false);
         clearCart();
-        // TODO: Show success message or navigate to order details
-        console.log('Order created:', orderId);
+        setReceiptOrderId(orderId);
+        setShowReceipt(true);
     };
 
     return (
@@ -224,6 +229,13 @@ export default function POSScreen() {
                 visible={showCheckout}
                 onDismiss={() => setShowCheckout(false)}
                 onSuccess={handleCheckoutSuccess}
+            />
+
+            {/* Receipt Modal */}
+            <ReceiptModal
+                visible={showReceipt}
+                onDismiss={() => setShowReceipt(false)}
+                orderId={receiptOrderId}
             />
 
             {/* Variant Selection Modal */}

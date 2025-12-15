@@ -27,8 +27,8 @@ export default function OrdersScreen() {
 
     // Payment Mutation
     const payMutation = useMutation({
-        mutationFn: async ({ orderId, amount }: { orderId: string; amount: number }) => {
-            return addOrderPayment(orderId, amount, 'cash'); // Defaulting to cash for repayment
+        mutationFn: async ({ orderId, amount, method }: { orderId: string; amount: number; method: 'cash' | 'mpesa' }) => {
+            return addOrderPayment(orderId, amount, method);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -46,11 +46,11 @@ export default function OrdersScreen() {
         setPaymentModalVisible(true);
     };
 
-    const submitPayment = (amount: number) => {
+    const submitPayment = (amount: number, method: 'cash' | 'mpesa') => {
         if (!selectedOrder) return;
 
         setIsSubmittingInfo(true);
-        payMutation.mutate({ orderId: selectedOrder.id, amount }, {
+        payMutation.mutate({ orderId: selectedOrder.id, amount, method }, {
             onSettled: () => setIsSubmittingInfo(false)
         });
     };
