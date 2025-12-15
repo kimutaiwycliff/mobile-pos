@@ -14,7 +14,7 @@ const screenWidth = Dimensions.get('window').width;
 export default function AnalyticsScreen() {
     const theme = useTheme();
     const { locationId } = useCartStore();
-    const [period, setPeriod] = useState('week'); // 'week' | 'month'
+    const [period, setPeriod] = useState('today'); // 'today' | 'yesterday' | 'week' | 'month'
 
     // Fetch Sales Metrics
     const { data: sales, isLoading: salesLoading, refetch: refetchSales } = useQuery({
@@ -54,8 +54,10 @@ export default function AnalyticsScreen() {
                     value={period}
                     onValueChange={setPeriod}
                     buttons={[
-                        { value: 'week', label: 'Last 7 Days' },
-                        { value: 'month', label: 'Last 30 Days' },
+                        { value: 'today', label: 'Today' },
+                        { value: 'yesterday', label: 'Yest' },
+                        { value: 'week', label: '7 Days' },
+                        { value: 'month', label: '30 Days' },
                     ]}
                     style={{ marginBottom: 16 }}
                 />

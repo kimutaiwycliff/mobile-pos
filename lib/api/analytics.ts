@@ -34,7 +34,7 @@ export interface TopProduct {
 
 export async function getSalesMetrics(
     locationId?: string,
-    period: 'today' | 'week' | 'month' = 'today'
+    period: 'today' | 'yesterday' | 'week' | 'month' = 'today'
 ): Promise<SalesMetrics> {
     try {
         const now = new Date();
@@ -44,6 +44,10 @@ export async function getSalesMetrics(
         if (period === 'today') {
             startDate = startOfDay(now);
             endDate = endOfDay(now);
+        } else if (period === 'yesterday') {
+            const yesterday = subDays(now, 1);
+            startDate = startOfDay(yesterday);
+            endDate = endOfDay(yesterday);
         } else if (period === 'week') {
             startDate = startOfWeek(now, { weekStartsOn: 1 });
             endDate = endOfWeek(now, { weekStartsOn: 1 });
@@ -90,11 +94,12 @@ export async function getSalesMetrics(
 
 export async function getSalesTrend(
     locationId?: string,
-    period: 'week' | 'month' = 'week'
+    period: 'today' | 'yesterday' | 'week' | 'month' = 'week'
 ): Promise<SalesTrendData[]> {
     try {
         const now = new Date();
-        const days = period === 'week' ? 7 : 30;
+        // For today/yesterday, we still show the last 7 days trend for context
+        const days = (period === 'week' || period === 'today' || period === 'yesterday') ? 7 : 30;
         const startDate = subDays(now, days);
 
         // Fetch all completed orders in range
