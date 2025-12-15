@@ -6,24 +6,36 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, useColorScheme } from 'react-native';
 import { queryClient } from '@/lib/api/queryClient';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useCartStore } from '@/stores/useCartStore';
 import { lightTheme, darkTheme } from '@/constants/theme';
 
 function RootLayoutNav() {
     const router = useRouter();
     const segments = useSegments();
-    const { theme, initializeTheme } = useThemeStore();
+    const { theme, themeMode, initializeTheme } = useThemeStore();
     const { user, isInitialized, initializeAuth } = useAuthStore();
+    const { loadCart } = useCartStore();
+    const colorScheme = useColorScheme();
+    const systemTheme = colorScheme === 'dark' ? 'dark' : 'light';
     const paperTheme = theme === 'dark' ? darkTheme : lightTheme;
 
-    // Initialize theme and auth on mount
+    // Initialize theme, auth, and cart on mount
     useEffect(() => {
-        initializeTheme();
+        initializeTheme(systemTheme);
         initializeAuth();
+        loadCart();
     }, []);
+
+    // Update theme when system theme changes
+    useEffect(() => {
+        if (themeMode === 'system') {
+            initializeTheme(systemTheme);
+        }
+    }, [systemTheme, themeMode]);
 
     // Handle navigation based on auth state
     useEffect(() => {

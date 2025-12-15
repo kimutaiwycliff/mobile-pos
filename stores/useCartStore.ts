@@ -334,8 +334,3 @@ const calculateDiscountAmount = (discount: Discount, items: CartItem[]): number 
 
     return amount;
 };
-
-// Initialize cart on app start
-if (typeof window !== 'undefined') {
-    useCartStore.getState().loadCart();
-}
