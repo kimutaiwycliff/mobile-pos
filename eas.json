@@ -14,6 +14,18 @@
             },
             "ios": {
                 "simulator": true
+            },
+            "env": {
+                "EXPO_PUBLIC_SUPABASE_URL": "https://cqznlauqkconcrurqeaf.supabase.co",
+                "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxem5sYXVxa2NvbmNydXJxZWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNTE4MDQsImV4cCI6MjA3OTcyNzgwNH0.a52jY1M0dwoLWwhhqFlRtHbkhb2NxgelB4z500ZaUQ4",
+                "EXPO_PUBLIC_ALGOLIA_APP_ID": "BAAZXSKY2A",
+                "EXPO_PUBLIC_ALGOLIA_SEARCH_KEY": "43e5ae4750103aa30401e9523b2f4b39",
+                "EXPO_PUBLIC_ALGOLIA_PRODUCTS_INDEX": "products",
+                "EXPO_PUBLIC_ALGOLIA_INVENTORY_INDEX": "inventory",
+                "EXPO_PUBLIC_CURRENCY_SYMBOL": "KSh",
+                "EXPO_PUBLIC_CURRENCY_CODE": "KES",
+                "EXPO_PUBLIC_TAX_RATE": "0",
+                "EXPO_PUBLIC_LOYALTY_POINTS_PER_CURRENCY": "100"
             }
         },
         "production": {}
