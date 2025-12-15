@@ -6,7 +6,6 @@ import { Modal, Portal, Text, useTheme, Button, TextInput, Divider, RadioButton,
 import { useCartStore } from '@/stores/useCartStore';
 import { createOrder } from '@/lib/api/orders';
 import { formatCurrency } from '@/utils/formatters';
-import { PAYMENT_METHODS } from '@/utils/constants';
 import { Discount } from '@/types/database.types';
 
 interface CheckoutModalProps {
@@ -15,12 +14,20 @@ interface CheckoutModalProps {
     onSuccess: (orderId: string) => void;
 }
 
+const PAYMENT_OPTIONS = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'mpesa', label: 'M-Pesa' },
+    { value: 'split', label: 'Split (Cash & M-Pesa)' },
+];
+
 export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalProps) {
     const theme = useTheme();
     const { items, totals, locationId, customerId, notes, clearCart, setDiscountCode } = useCartStore();
 
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [cashReceived, setCashReceived] = useState('');
+    const [mpesaReceived, setMpesaReceived] = useState('');
+
     const [isLayaway, setIsLayaway] = useState(false);
     const [layawayName, setLayawayName] = useState('');
     const [layawayPhone, setLayawayPhone] = useState('');
@@ -33,8 +40,25 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
     const [error, setError] = useState<string | null>(null);
 
     const cashAmount = parseFloat(cashReceived) || 0;
-    const change = cashAmount - totals.total;
-    const balance = isLayaway ? Math.max(0, totals.total - cashAmount) : 0;
+    const mpesaInputAmount = parseFloat(mpesaReceived) || 0;
+
+    // Calculate detailed totals
+    let totalPaid = 0;
+    if (paymentMethod === 'cash') {
+        // If exact cash or more is given, we just consider it fully paid up to the total
+        totalPaid = cashAmount;
+    } else if (paymentMethod === 'mpesa') {
+        // For M-Pesa, usually we assume exact payment unless Layaway
+        // But for consistency let's allow input if it's Layaway, else assume total
+        totalPaid = isLayaway ? mpesaInputAmount : totals.total;
+    } else if (paymentMethod === 'split') {
+        totalPaid = cashAmount + mpesaInputAmount;
+    }
+
+    // Change only meaningful for Cash or Split where Cash is involved and total > due
+    // But typically change is (Total Paid - Due).
+    const change = totalPaid - totals.total;
+    const balance = isLayaway ? Math.max(0, totals.total - totalPaid) : 0;
 
     const handleApplyDiscount = () => {
         const amount = parseFloat(discountInput);
@@ -82,13 +106,24 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
             setError(null);
 
             // Validate payment
-            if (!isLayaway && paymentMethod === 'cash' && cashAmount < totals.total) {
-                setError('Cash received is less than total amount');
-                return;
+            if (!isLayaway) {
+                if (paymentMethod === 'cash' && cashAmount < totals.total) { // Accept exact or more
+                    // If they leave it empty, cashAmount is 0. 
+                    // We probably should enforcement input for Cash payment?
+                    // Or if they click "Complete" with 0, maybe they mean exact change?
+                    // Let's enforce input for clarity.
+                    setError('Cash received is less than total amount');
+                    return;
+                }
+                if (paymentMethod === 'split' && (cashAmount + mpesaInputAmount) < totals.total) {
+                    setError('Total payment is less than order total');
+                    return;
+                }
             }
 
             if (isLayaway) {
-                if (cashAmount <= 0) {
+                // Deposit validation
+                if (totalPaid <= 0) {
                     setError('Deposit amount must be greater than 0');
                     return;
                 }
@@ -102,6 +137,21 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
 
+            // Construct Payments Array
+            const finalPayments = [];
+            if (paymentMethod === 'cash') {
+                // For non-layaway, we record the order Total as paid amount, even if they gave more (Change)
+                // For layaway, we record exactly what they gave as deposit
+                const amount = isLayaway ? cashAmount : totals.total;
+                finalPayments.push({ paymentMethod: 'cash', amount });
+            } else if (paymentMethod === 'mpesa') {
+                const amount = isLayaway ? mpesaInputAmount : totals.total;
+                finalPayments.push({ paymentMethod: 'mpesa', amount });
+            } else if (paymentMethod === 'split') {
+                if (cashAmount > 0) finalPayments.push({ paymentMethod: 'cash', amount: cashAmount });
+                if (mpesaInputAmount > 0) finalPayments.push({ paymentMethod: 'mpesa', amount: mpesaInputAmount });
+            }
+
             // Create order
             const result = await createOrder({
                 customerId,
@@ -111,18 +161,25 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
                 totalDiscount: totals.totalDiscount,
                 taxAmount: totals.taxAmount,
                 total: totals.total,
-                paymentMethod,
-                amountPaid: paymentMethod === 'cash' ? cashAmount : totals.total,
+                // We don't use single paymentMethod/amountPaid anymore in favor of payments array
+                // But for backward compat or simplistic logging we can pass primary
+                // The updated createOrder uses 'payments' array.
+                payments: finalPayments,
                 notes,
                 isLayaway,
                 layawayCustomerName: layawayName,
                 layawayCustomerPhone: layawayPhone,
                 layawayDueDate: dueDate,
-                layawayDepositPercent: isLayaway ? (cashAmount / totals.total) * 100 : undefined
+                layawayDepositPercent: isLayaway ? (totalPaid / totals.total) * 100 : undefined
             });
 
             // Clear cart
             clearCart();
+            // Clear local states
+            setCashReceived('');
+            setMpesaReceived('');
+            setPaymentMethod('cash');
+            setIsLayaway(false);
 
             // Notify success
             onSuccess(result.order.id);
@@ -272,7 +329,7 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
                         </Text>
 
                         <RadioButton.Group value={paymentMethod} onValueChange={setPaymentMethod}>
-                            {PAYMENT_METHODS.map((method) => (
+                            {PAYMENT_OPTIONS.map((method) => (
                                 <RadioButton.Item
                                     key={method.value}
                                     label={method.label}
@@ -283,45 +340,70 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
                         </RadioButton.Group>
                     </View>
 
-                    {/* Payment Details (Cash or Deposit) */}
-                    {(paymentMethod === 'cash' || isLayaway) && (
-                        <>
-                            <Divider />
-                            <View style={styles.section}>
-                                <TextInput
-                                    label={isLayaway ? "Deposit Amount" : "Cash Received"}
-                                    value={cashReceived}
-                                    onChangeText={setCashReceived}
-                                    keyboardType="numeric"
-                                    mode="outlined"
-                                    disabled={isProcessing}
-                                    style={{ marginBottom: 16 }}
-                                />
+                    {/* Payment Inputs */}
+                    <View style={styles.section}>
+                        {/* Cash Input */}
+                        {(paymentMethod === 'cash' || paymentMethod === 'split') && (
+                            <TextInput
+                                label={isLayaway && paymentMethod === 'cash' ? "Deposit Amount" : "Cash Received"}
+                                value={cashReceived}
+                                onChangeText={setCashReceived}
+                                keyboardType="numeric"
+                                mode="outlined"
+                                disabled={isProcessing}
+                                style={{ marginBottom: 16 }}
+                            />
+                        )}
 
-                                {!isLayaway && cashAmount > 0 && (
-                                    <View style={styles.row}>
-                                        <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
-                                            Change:
-                                        </Text>
-                                        <Text variant="titleMedium" style={{ color: change >= 0 ? theme.colors.primary : theme.colors.error, fontWeight: 'bold' }}>
-                                            {formatCurrency(Math.max(0, change))}
-                                        </Text>
-                                    </View>
-                                )}
+                        {/* M-Pesa Input */}
+                        {/* For straight M-Pesa, we usually autofill total, but for Layaway we might need partial.
+                            For Split, we definitely need input. */}
+                        {(paymentMethod === 'split' || (isLayaway && paymentMethod === 'mpesa')) && (
+                            <TextInput
+                                label={isLayaway ? "M-Pesa Deposit" : "M-Pesa Amount"}
+                                value={mpesaReceived}
+                                onChangeText={setMpesaReceived}
+                                keyboardType="numeric"
+                                mode="outlined"
+                                disabled={isProcessing}
+                                style={{ marginBottom: 16 }}
+                            />
+                        )}
 
-                                {isLayaway && (
-                                    <View style={styles.row}>
-                                        <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
-                                            Balance Due:
-                                        </Text>
-                                        <Text variant="titleMedium" style={{ color: theme.colors.error, fontWeight: 'bold' }}>
-                                            {formatCurrency(balance)}
-                                        </Text>
-                                    </View>
-                                )}
+                        {/* Summary of Payment (vs Total) */}
+                        {!isLayaway && (
+                            <View style={styles.row}>
+                                <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                                    {paymentMethod === 'split' ? 'Total Paid:' : 'Cash Received:'}
+                                </Text>
+                                <Text variant="titleMedium" style={{ color: theme.colors.onSurface, fontWeight: 'bold' }}>
+                                    {formatCurrency(totalPaid)}
+                                </Text>
                             </View>
-                        </>
-                    )}
+                        )}
+
+                        {!isLayaway && change >= 0 && (
+                            <View style={styles.row}>
+                                <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                                    Change:
+                                </Text>
+                                <Text variant="titleMedium" style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
+                                    {formatCurrency(change)}
+                                </Text>
+                            </View>
+                        )}
+
+                        {isLayaway && (
+                            <View style={styles.row}>
+                                <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                                    Balance Due:
+                                </Text>
+                                <Text variant="titleMedium" style={{ color: theme.colors.error, fontWeight: 'bold' }}>
+                                    {formatCurrency(balance)}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
 
                     {/* Error Message */}
                     {error && (
@@ -339,7 +421,11 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
                             mode="contained"
                             onPress={handleCheckout}
                             loading={isProcessing}
-                            disabled={isProcessing || (!isLayaway && paymentMethod === 'cash' && cashAmount < totals.total)}
+                            // Disable if Paying Cash/Split and amount < total (unless layaway)
+                            disabled={
+                                isProcessing ||
+                                (!isLayaway && totalPaid < totals.total)
+                            }
                             style={{ flex: 1 }}
                         >
                             {isLayaway ? 'Create Layaway' : 'Complete Order'}
