@@ -38,7 +38,12 @@ export function useProductSearch(): UseProductSearchResult {
 
                 const searchResult = results[0];
                 if (searchResult && 'hits' in searchResult) {
-                    setProducts(searchResult.hits as unknown as Product[]);
+                    // Map items to ensure ID exists (Algolia uses objectID)
+                    const mappedProducts = searchResult.hits.map((hit: any) => ({
+                        ...hit,
+                        id: hit.id || hit.objectID
+                    }));
+                    setProducts(mappedProducts as Product[]);
                 } else {
                     setProducts([]);
                 }
