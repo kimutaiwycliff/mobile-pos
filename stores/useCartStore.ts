@@ -20,6 +20,7 @@ interface CartStore extends CartState {
     setLocation: (locationId: string) => void;
     setNotes: (notes: string) => void;
     setDiscountCode: (code: string | null, discount: Discount | null) => void;
+    setError: (error: string | null) => void;
     clearCart: () => void;
     loadCart: () => void;
     saveCart: () => void;
@@ -45,6 +46,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
     discountCode: null,
     appliedDiscount: null,
     notes: null,
+    error: null,
     totals: {
         subtotal: 0,
         itemDiscountTotal: 0,
@@ -58,6 +60,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
     // Add item to cart
     addItem: (product: Product | ProductVariant, quantity = 1, isVariant = false) => {
         const state = get();
+        // Reset error on new action
+        set({ error: null });
+
         const existingItemIndex = state.items.findIndex((item) => {
             if (isVariant) {
                 return item.variantId === product.id;
@@ -75,7 +80,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
             // Check max quantity (available stock)
             if (newQuantity > existingItem.maxQuantity) {
-                console.warn('Cannot add more items than available stock');
+                set({ error: `Cannot add more items than available stock (${existingItem.maxQuantity})` });
                 return;
             }
 
@@ -84,6 +89,20 @@ export const useCartStore = create<CartStore>((set, get) => ({
                 quantity: newQuantity,
             };
         } else {
+            // Retrieve stock from product object if present (injected via useProductSearch)
+            // or default to 100 if not tracking
+            // We cast to any to access dynamic props if needed, or rely on extended types
+            const productWithStock = product as any;
+            const trackInventory = productWithStock.track_inventory ?? true; // Default to true for safety
+            const availableStock = trackInventory
+                ? (typeof productWithStock.quantity === 'number' ? productWithStock.quantity : 0) // Default to 0 if tracking but no data
+                : 9999; // Infinite if not tracking
+
+            if (quantity > availableStock) {
+                set({ error: `Cannot add item. Only ${availableStock} in stock.` });
+                return;
+            }
+
             // Add new item
             const newItem: CartItem = {
                 id: generateCartItemId(),
@@ -99,7 +118,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
                 taxRate: product.tax_rate,
                 itemDiscount: 0,
                 imageUrl: product.image_url || undefined,
-                maxQuantity: 100, // TODO: Get from inventory
+                maxQuantity: availableStock,
             };
 
             newItems = [...state.items, newItem];
@@ -134,6 +153,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
             items: newItems,
             totals,
             itemCount: newItems.reduce((sum, item) => sum + item.quantity, 0),
+            error: null, // Clear error on successful action
         });
 
         get().saveCart();
@@ -142,6 +162,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
     // Update item quantity
     updateQuantity: (cartItemId: string, quantity: number) => {
         const state = get();
+        set({ error: null });
+
         const itemIndex = state.items.findIndex((item) => item.id === cartItemId);
 
         if (itemIndex < 0) return;
@@ -155,7 +177,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
         }
 
         if (quantity > item.maxQuantity) {
-            console.warn('Cannot exceed available stock');
+            set({ error: `Cannot exceed available stock (${item.maxQuantity})` });
             return;
         }
 
@@ -238,6 +260,10 @@ export const useCartStore = create<CartStore>((set, get) => ({
         get().saveCart();
     },
 
+    setError: (error: string | null) => {
+        set({ error });
+    },
+
     // Clear cart
     clearCart: () => {
         set({
@@ -255,6 +281,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
                 total: 0,
             },
             itemCount: 0,
+            error: null,
         });
 
         cartStorage.remove(STORAGE_KEYS.CART_ITEMS);
@@ -283,6 +310,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
                     notes,
                     totals,
                     itemCount,
+                    error: null,
                 });
             }
         } catch (error) {

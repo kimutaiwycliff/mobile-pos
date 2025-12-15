@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
-import { Text, useTheme, Searchbar, FAB, Portal, Modal, Divider } from 'react-native-paper';
+import { Text, useTheme, Searchbar, FAB, Portal, Modal, Divider, Snackbar } from 'react-native-paper';
 import { useProductSearch } from '@/hooks/useProductSearch';
 import { useCartStore } from '@/stores/useCartStore';
 import { ProductCard } from '@/components/pos/ProductCard';
@@ -16,7 +16,7 @@ import { useRouter } from 'expo-router';
 export default function POSScreen() {
     const theme = useTheme();
     const { products, isLoading, error, search, clearSearch } = useProductSearch();
-    const { items, totals, itemCount, addItem, updateQuantity, removeItem, clearCart, applyItemDiscount } = useCartStore();
+    const { items, totals, itemCount, addItem, updateQuantity, removeItem, clearCart, applyItemDiscount, error: cartError, setError } = useCartStore();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [showCart, setShowCart] = useState(false);
@@ -233,6 +233,20 @@ export default function POSScreen() {
                 onDismiss={() => setShowVariantModal(false)}
                 onSelectVariant={handleVariantSelect}
             />
+
+            {/* Error Snackbar */}
+            <Snackbar
+                visible={!!cartError}
+                onDismiss={() => setError(null)}
+                duration={3000}
+                action={{
+                    label: 'Dismiss',
+                    onPress: () => setError(null),
+                }}
+                style={{ backgroundColor: theme.colors.errorContainer }}
+            >
+                <Text style={{ color: theme.colors.onErrorContainer }}>{cartError}</Text>
+            </Snackbar>
         </View>
     );
 }

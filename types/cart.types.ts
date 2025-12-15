@@ -32,6 +32,7 @@ export interface CartState {
     discountCode: string | null;
     appliedDiscount: Discount | null;
     notes: string | null;
+    error: string | null;          // Error message for UI feedback
 }
 
 // ============================================================================
