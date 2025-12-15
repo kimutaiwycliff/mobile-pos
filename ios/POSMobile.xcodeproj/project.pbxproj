@@ -7,29 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		129478CB9520BE941E072588 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3CE6AEE1A5C76D12031B7394 /* PrivacyInfo.xcprivacy */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		6C2C2292A7885A394757A653 /* libPods-POSMobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6283F6D5A5FAB8CC005F8A82 /* libPods-POSMobile.a */; };
+		7E46F5910F3712888CEF282A /* libPods-POSMobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F565E6897B172965C61A416C /* libPods-POSMobile.a */; };
+		A1DBEE2AB997A2D6433681CB /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D61718BED534F16E61C0D43 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		E8F7B5A69AE0F39D40C86ADF /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA36DB2AEB6FC18804852F2 /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		FAD9EB45A65767C82252A16C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 436368BAFDEF05E592698093 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0B6CD74F196D128F7713D143 /* Pods-POSMobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-POSMobile.debug.xcconfig"; path = "Target Support Files/Pods-POSMobile/Pods-POSMobile.debug.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* POSMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = POSMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = POSMobile/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = POSMobile/Info.plist; sourceTree = "<group>"; };
-		3CE6AEE1A5C76D12031B7394 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = POSMobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		6283F6D5A5FAB8CC005F8A82 /* libPods-POSMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-POSMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		436368BAFDEF05E592698093 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = POSMobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		5D46B7563921DC78BC0F8FC9 /* Pods-POSMobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-POSMobile.release.xcconfig"; path = "Target Support Files/Pods-POSMobile/Pods-POSMobile.release.xcconfig"; sourceTree = "<group>"; };
+		89A847A1D031AF8EC4034E3F /* Pods-POSMobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-POSMobile.debug.xcconfig"; path = "Target Support Files/Pods-POSMobile/Pods-POSMobile.debug.xcconfig"; sourceTree = "<group>"; };
+		9D61718BED534F16E61C0D43 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-POSMobile/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = POSMobile/SplashScreen.storyboard; sourceTree = "<group>"; };
-		B8F07B78EE888DA0D15CFB78 /* Pods-POSMobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-POSMobile.release.xcconfig"; path = "Target Support Files/Pods-POSMobile/Pods-POSMobile.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		BBA36DB2AEB6FC18804852F2 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-POSMobile/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = POSMobile/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* POSMobile-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "POSMobile-Bridging-Header.h"; path = "POSMobile/POSMobile-Bridging-Header.h"; sourceTree = "<group>"; };
+		F565E6897B172965C61A416C /* libPods-POSMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-POSMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6C2C2292A7885A394757A653 /* libPods-POSMobile.a in Frameworks */,
+				7E46F5910F3712888CEF282A /* libPods-POSMobile.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +53,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				3CE6AEE1A5C76D12031B7394 /* PrivacyInfo.xcprivacy */,
+				436368BAFDEF05E592698093 /* PrivacyInfo.xcprivacy */,
 			);
 			name = POSMobile;
 			sourceTree = "<group>";
@@ -62,9 +62,19 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				6283F6D5A5FAB8CC005F8A82 /* libPods-POSMobile.a */,
+				F565E6897B172965C61A416C /* libPods-POSMobile.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		63A807494605DBE03B1B8A9A /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				89A847A1D031AF8EC4034E3F /* Pods-POSMobile.debug.xcconfig */,
+				5D46B7563921DC78BC0F8FC9 /* Pods-POSMobile.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -81,8 +91,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				9DB5DF2C4972EC551FE7A475 /* Pods */,
-				C5A68BA7A9EF5487AADD9A0C /* ExpoModulesProviders */,
+				63A807494605DBE03B1B8A9A /* Pods */,
+				BDDC48C8B17F18695E252256 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -97,24 +107,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		88E80C352D7ACC7386A8FB9F /* POSMobile */ = {
-			isa = PBXGroup;
-			children = (
-				BBA36DB2AEB6FC18804852F2 /* ExpoModulesProvider.swift */,
-			);
-			name = POSMobile;
-			sourceTree = "<group>";
-		};
-		9DB5DF2C4972EC551FE7A475 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				0B6CD74F196D128F7713D143 /* Pods-POSMobile.debug.xcconfig */,
-				B8F07B78EE888DA0D15CFB78 /* Pods-POSMobile.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -124,10 +116,18 @@
 			path = POSMobile/Supporting;
 			sourceTree = "<group>";
 		};
-		C5A68BA7A9EF5487AADD9A0C /* ExpoModulesProviders */ = {
+		BC0855434F4E4BB19E0137D6 /* POSMobile */ = {
 			isa = PBXGroup;
 			children = (
-				88E80C352D7ACC7386A8FB9F /* POSMobile */,
+				9D61718BED534F16E61C0D43 /* ExpoModulesProvider.swift */,
+			);
+			name = POSMobile;
+			sourceTree = "<group>";
+		};
+		BDDC48C8B17F18695E252256 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				BC0855434F4E4BB19E0137D6 /* POSMobile */,
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "POSMobile" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				F0346FB148ED18BCA334F057 /* [Expo] Configure project */,
+				C8AA87EB51A06AE17B7FB4AE /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				D551284E75DD73A3A74C847F /* [CP] Embed Pods Frameworks */,
+				C7EC52FF36E147BAD2462791 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -196,7 +196,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				129478CB9520BE941E072588 /* PrivacyInfo.xcprivacy in Resources */,
+				FAD9EB45A65767C82252A16C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -308,7 +308,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-POSMobile/Pods-POSMobile-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		D551284E75DD73A3A74C847F /* [CP] Embed Pods Frameworks */ = {
+		C7EC52FF36E147BAD2462791 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -330,7 +330,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-POSMobile/Pods-POSMobile-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F0346FB148ED18BCA334F057 /* [Expo] Configure project */ = {
+		C8AA87EB51A06AE17B7FB4AE /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -362,7 +362,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				E8F7B5A69AE0F39D40C86ADF /* ExpoModulesProvider.swift in Sources */,
+				A1DBEE2AB997A2D6433681CB /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -371,7 +371,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0B6CD74F196D128F7713D143 /* Pods-POSMobile.debug.xcconfig */;
+			baseConfigurationReference = 89A847A1D031AF8EC4034E3F /* Pods-POSMobile.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -407,7 +407,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B8F07B78EE888DA0D15CFB78 /* Pods-POSMobile.release.xcconfig */;
+			baseConfigurationReference = 5D46B7563921DC78BC0F8FC9 /* Pods-POSMobile.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

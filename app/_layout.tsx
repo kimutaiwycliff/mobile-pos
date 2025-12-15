@@ -62,13 +62,13 @@ function RootLayoutNav() {
     }
 
     return (
-        <>
+        <PaperProvider theme={paperTheme}>
             <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
             <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(auth)" />
                 <Stack.Screen name="(tabs)" />
             </Stack>
-        </>
+        </PaperProvider>
     );
 }
 
@@ -76,9 +76,7 @@ export default function RootLayout() {
     return (
         <SafeAreaProvider>
             <QueryClientProvider client={queryClient}>
-                <PaperProvider>
-                    <RootLayoutNav />
-                </PaperProvider>
+                <RootLayoutNav />
             </QueryClientProvider>
         </SafeAreaProvider>
     );

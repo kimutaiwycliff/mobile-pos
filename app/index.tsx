@@ -1,6 +1,7 @@
 // App Index
 
+import { Redirect } from 'expo-router';
+
 export default function Index() {
-    // Root layout handles all routing based on auth state
-    return null;
+    return <Redirect href="/(tabs)" />;
 }

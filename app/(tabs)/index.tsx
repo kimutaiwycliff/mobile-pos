@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 
 export default function POSScreen() {
     const theme = useTheme();
-    const { products, isLoading, search, clearSearch } = useProductSearch();
+    const { products, isLoading, error, search, clearSearch } = useProductSearch();
     const { items, totals, itemCount, addItem, updateQuantity, removeItem, clearCart } = useCartStore();
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -54,16 +54,28 @@ export default function POSScreen() {
                 />
             </View>
 
+
+            {/* Error Banner - Restored for Debugging */}
+            {error && (
+                <View style={{ padding: 10, backgroundColor: theme.colors.errorContainer, margin: 10, borderRadius: 8 }}>
+                    <Text style={{ color: theme.colors.error, textAlign: 'center' }}>Error: {error}</Text>
+                </View>
+            )}
+
             {/* Product Grid */}
             <FlatList
                 data={products}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
-                contentContainerStyle={styles.productGrid}
+                contentContainerStyle={[styles.productGrid, { flexGrow: 1 }]}
+                style={{ flex: 1 }}
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
-                        <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
-                            {searchQuery ? 'No products found' : 'Search for products to add to cart'}
+                        <Text variant="headlineSmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center', marginBottom: 8 }}>
+                            {isLoading ? 'Loading...' : (searchQuery ? 'No products found' : 'No products loaded')}
+                        </Text>
+                        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
+                            {error ? 'An error occurred.' : 'Please try searching again.'}
                         </Text>
                     </View>
                 }
