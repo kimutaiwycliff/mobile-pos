@@ -17,9 +17,15 @@ export const calculateItemTax = (
     itemDiscount: number,
     orderDiscountPerItem: number = 0
 ): number => {
-    const itemTotal = unitPrice * quantity;
-    const taxableAmount = itemTotal - itemDiscount - orderDiscountPerItem;
-    return (taxableAmount * taxRate) / 100;
+    const price = unitPrice || 0;
+    const qty = quantity || 0;
+    const tax = taxRate || 0;
+    const discount = itemDiscount || 0;
+    const orderDiscount = orderDiscountPerItem || 0;
+
+    const itemTotal = price * qty;
+    const taxableAmount = Math.max(0, itemTotal - discount - orderDiscount);
+    return (taxableAmount * tax) / 100;
 };
 
 /**
@@ -31,8 +37,13 @@ export const calculateTotalTax = (
     subtotal: number
 ): number => {
     return items.reduce((total, item) => {
-        const itemTotal = item.unitPrice * item.quantity;
-        const orderDiscountPerItem = subtotal > 0 ? (orderDiscount / subtotal) * itemTotal : 0;
+        const price = item.unitPrice || 0;
+        const qty = item.quantity || 0;
+
+        const itemTotal = price * qty;
+        const safeSubtotal = subtotal || 1; // Prevent division by zero
+        const orderDiscountPerItem = subtotal > 0 ? (orderDiscount / safeSubtotal) * itemTotal : 0;
+
         const itemTax = calculateItemTax(
             item.unitPrice,
             item.quantity,
@@ -57,12 +68,14 @@ export const calculateCartTotals = (
 ): CartTotals => {
     // Subtotal: sum of (unitPrice * quantity)
     const subtotal = items.reduce((sum, item) => {
-        return sum + item.unitPrice * item.quantity;
+        const price = item.unitPrice || 0;
+        const qty = item.quantity || 0;
+        return sum + price * qty;
     }, 0);
 
     // Item-level discounts total
     const itemDiscountTotal = items.reduce((sum, item) => {
-        return sum + item.itemDiscount;
+        return sum + (item.itemDiscount || 0);
     }, 0);
 
     // Total discount

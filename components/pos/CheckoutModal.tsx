@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Modal, Portal, Text, useTheme, Button, TextInput, Divider, RadioButton, Switch } from 'react-native-paper';
+import { Modal, Portal, Text, useTheme, Button, TextInput, Divider, RadioButton, Switch, IconButton } from 'react-native-paper';
 import { useCartStore } from '@/stores/useCartStore';
 import { createOrder } from '@/lib/api/orders';
 import { formatCurrency } from '@/utils/formatters';
 import { PAYMENT_METHODS } from '@/utils/constants';
+import { Discount } from '@/types/database.types';
 
 interface CheckoutModalProps {
     visible: boolean;
@@ -16,7 +17,7 @@ interface CheckoutModalProps {
 
 export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalProps) {
     const theme = useTheme();
-    const { items, totals, locationId, customerId, notes, clearCart } = useCartStore();
+    const { items, totals, locationId, customerId, notes, clearCart, setDiscountCode } = useCartStore();
 
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [cashReceived, setCashReceived] = useState('');
@@ -24,12 +25,56 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
     const [layawayName, setLayawayName] = useState('');
     const [layawayPhone, setLayawayPhone] = useState('');
 
+    // Discount State
+    const [showDiscountInput, setShowDiscountInput] = useState(false);
+    const [discountInput, setDiscountInput] = useState('');
+
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const cashAmount = parseFloat(cashReceived) || 0;
     const change = cashAmount - totals.total;
     const balance = isLayaway ? Math.max(0, totals.total - cashAmount) : 0;
+
+    const handleApplyDiscount = () => {
+        const amount = parseFloat(discountInput);
+        if (isNaN(amount) || amount < 0) {
+            setError('Invalid discount amount');
+            return;
+        }
+
+        if (amount > totals.subtotal) {
+            setError('Discount cannot exceed subtotal');
+            return;
+        }
+
+        // Create a manual discount object
+        const manualDiscount: Discount = {
+            id: `manual_${Date.now()}`,
+            code: 'MANUAL',
+            name: 'Manual Discount',
+            description: 'Manual discount applied at checkout',
+            discount_type: 'fixed_amount',
+            discount_value: amount,
+            min_purchase_amount: null,
+            max_discount_amount: null,
+            usage_limit: null,
+            usage_count: 0,
+            per_customer_limit: null,
+            start_date: new Date().toISOString(),
+            end_date: null,
+            is_active: true,
+            applies_to: 'all',
+            product_ids: [],
+            category_ids: [],
+            created_at: new Date().toISOString()
+        };
+
+        setDiscountCode('MANUAL', manualDiscount);
+        setShowDiscountInput(false);
+        setDiscountInput('');
+        setError(null);
+    };
 
     const handleCheckout = async () => {
         try {
@@ -46,9 +91,6 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
                 if (cashAmount <= 0) {
                     setError('Deposit amount must be greater than 0');
                     return;
-                }
-                if (cashAmount >= totals.total) { // Optional: Could allow full payment layaway but implies paid.
-                    // Warning or Auto-switch? Let's allow but it's weird.
                 }
                 if (!customerId && (!layawayName || !layawayPhone)) {
                     setError('Customer Name and Phone are required for Layaway');
@@ -70,20 +112,13 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
                 taxAmount: totals.taxAmount,
                 total: totals.total,
                 paymentMethod,
-                amountPaid: paymentMethod === 'cash' ? cashAmount : totals.total, // For Non-Cash full payments, assumed paid. For Layaway, cashAmount is deposit.
-                // Wait, if Payment Method is Card for Layaway?
-                // Logic assumes 'cash' inputs cashAmount.
-                // If Card, usually we enter amount charged.
-                // For MVP, limit Layaway to Cash or allow manual amount for others?
-                // I'll assume Cash for Layaway Deposit primarily or generic 'amountPaid' input if needed.
-                // For now, I'll use cashReceived as "Amount Paid" regardless of method if isLayaway?
-                // Or easier: Simplify logic.
+                amountPaid: paymentMethod === 'cash' ? cashAmount : totals.total,
                 notes,
                 isLayaway,
                 layawayCustomerName: layawayName,
                 layawayCustomerPhone: layawayPhone,
                 layawayDueDate: dueDate,
-                layawayDepositPercent: (cashAmount / totals.total) * 100
+                layawayDepositPercent: isLayaway ? (cashAmount / totals.total) * 100 : undefined
             });
 
             // Clear cart
@@ -122,10 +157,6 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
                         <Text variant="titleMedium" style={{ color: theme.colors.onSurface, marginBottom: 12 }}>
                             Order Summary
                         </Text>
-                        {/* ... existing summary rows ... */}
-                        {/* I need to keep existing summary rows. Since I am replacing the whole file content or block, I must include them. */}
-                        {/* I will assume I need to copy them or use the ranges carefully. */}
-                        {/* Since I am using replace_file_content for the whole component or large block, I'll rewrite the summary part to be safe. */}
                         <View style={styles.row}>
                             <Text style={{ color: theme.colors.onSurfaceVariant }}>Items:</Text>
                             <Text style={{ color: theme.colors.onSurface }}>{items.length}</Text>
@@ -134,12 +165,56 @@ export function CheckoutModal({ visible, onDismiss, onSuccess }: CheckoutModalPr
                             <Text style={{ color: theme.colors.onSurfaceVariant }}>Subtotal:</Text>
                             <Text style={{ color: theme.colors.onSurface }}>{formatCurrency(totals.subtotal)}</Text>
                         </View>
+
+                        {/* Discount Section */}
                         {totals.totalDiscount > 0 && (
                             <View style={styles.row}>
                                 <Text style={{ color: theme.colors.error }}>Discount:</Text>
-                                <Text style={{ color: theme.colors.error }}>-{formatCurrency(totals.totalDiscount)}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={{ color: theme.colors.error, marginRight: 8 }}>
+                                        -{formatCurrency(totals.totalDiscount)}
+                                    </Text>
+                                    <IconButton
+                                        icon="close-circle"
+                                        size={16}
+                                        iconColor={theme.colors.error}
+                                        onPress={() => setDiscountCode(null, null)}
+                                    />
+                                </View>
                             </View>
                         )}
+
+                        {/* Add Discount Toggle */}
+                        {totals.totalDiscount === 0 && !showDiscountInput && (
+                            <Button
+                                mode="text"
+                                compact
+                                onPress={() => setShowDiscountInput(true)}
+                                style={{ alignSelf: 'flex-start', marginLeft: -8 }}
+                            >
+                                + Add Discount
+                            </Button>
+                        )}
+
+                        {/* Discount Input */}
+                        {showDiscountInput && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                                <TextInput
+                                    label="Discount Amount"
+                                    value={discountInput}
+                                    onChangeText={setDiscountInput}
+                                    keyboardType="numeric"
+                                    mode="outlined"
+                                    style={{ flex: 1, height: 40 }}
+                                    dense
+                                />
+                                <Button mode="contained-tonal" onPress={handleApplyDiscount}>
+                                    Apply
+                                </Button>
+                                <IconButton icon="close" onPress={() => setShowDiscountInput(false)} />
+                            </View>
+                        )}
+
                         {totals.taxAmount > 0 && (
                             <View style={styles.row}>
                                 <Text style={{ color: theme.colors.onSurfaceVariant }}>Tax:</Text>
@@ -292,6 +367,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 8,
+        alignItems: 'center',
     },
     error: {
         margin: 20,
