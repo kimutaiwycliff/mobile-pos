@@ -8,6 +8,7 @@ import { FlashList } from '@shopify/flash-list';
 import { getInventory, adjustStock, InventoryItem } from '@/lib/api/inventory';
 import { supabase } from '@/lib/supabase/client';
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
+import { InventoryListSkeleton } from '@/components/inventory/InventoryListSkeleton';
 import { useCartStore } from '@/stores/useCartStore'; // For accessing default location ID
 
 export default function InventoryScreen() {
@@ -151,19 +152,23 @@ export default function InventoryScreen() {
                 />
             </View>
 
-            <FlashList
-                data={inventory}
-                renderItem={renderItem}
-                contentContainerStyle={styles.list}
-                refreshControl={
-                    <RefreshControl refreshing={isLoading} onRefresh={refetch} />
-                }
-                ListEmptyComponent={
-                    <View style={styles.empty}>
-                        <Text>No inventory items found</Text>
-                    </View>
-                }
-            />
+            {isLoading && inventory.length === 0 ? (
+                <InventoryListSkeleton />
+            ) : (
+                <FlashList
+                    data={inventory}
+                    renderItem={renderItem}
+                    contentContainerStyle={styles.list}
+                    refreshControl={
+                        <RefreshControl refreshing={isLoading && inventory.length > 0} onRefresh={refetch} />
+                    }
+                    ListEmptyComponent={
+                        <View style={styles.empty}>
+                            <Text>No inventory items found</Text>
+                        </View>
+                    }
+                />
+            )}
 
             {selectedItem && (
                 <StockAdjustmentModal

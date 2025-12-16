@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "POS Mobile",
-    "slug": "pos-mobile",
+    "name": "Luxe POS",
+    "slug": "luxe-pos",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,7 +9,7 @@
     "scheme": "posmobile",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/luxe-splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

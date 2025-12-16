@@ -14,6 +14,7 @@ import { BarcodeScannerModal } from '@/components/pos/BarcodeScannerModal';
 import { Product, ProductVariant } from '@/types/database.types';
 import { formatCurrency } from '@/utils/formatters';
 import { supabase } from '@/lib/supabase/client';
+import { ProductGridSkeleton } from '@/components/pos/ProductGridSkeleton';
 
 export default function POSScreen() {
     const theme = useTheme();
@@ -175,31 +176,35 @@ export default function POSScreen() {
             )}
 
             {/* Product Grid */}
-            <FlatList
-                data={products}
-                keyExtractor={(item) => item.id}
-                numColumns={2}
-                contentContainerStyle={[styles.productGrid, { flexGrow: 1 }]}
-                columnWrapperStyle={{ justifyContent: 'space-between', gap: 8 }}
-                style={{ flex: 1 }}
-                ListEmptyComponent={
-                    <View style={styles.emptyState}>
-                        <Text variant="headlineSmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center', marginBottom: 8 }}>
-                            {isLoading ? 'Loading...' : (searchQuery ? 'No products found' : 'No products loaded')}
-                        </Text>
-                        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
-                            {error ? 'An error occurred.' : 'Tap the scan button or search to find items.'}
-                        </Text>
-                    </View>
-                }
-                renderItem={({ item }) => (
-                    <ProductCard
-                        product={item}
-                        onPress={() => { }}
-                        onAddToCart={() => handleAddToCart(item)}
-                    />
-                )}
-            />
+            {isLoading && products.length === 0 ? (
+                <ProductGridSkeleton />
+            ) : (
+                <FlatList
+                    data={products}
+                    keyExtractor={(item) => item.id}
+                    numColumns={2}
+                    contentContainerStyle={[styles.productGrid, { flexGrow: 1 }]}
+                    columnWrapperStyle={{ justifyContent: 'space-between', gap: 8 }}
+                    style={{ flex: 1 }}
+                    ListEmptyComponent={
+                        <View style={styles.emptyState}>
+                            <Text variant="headlineSmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center', marginBottom: 8 }}>
+                                {searchQuery ? 'No products found' : 'No products loaded'}
+                            </Text>
+                            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
+                                {error ? 'An error occurred.' : 'Tap the scan button or search to find items.'}
+                            </Text>
+                        </View>
+                    }
+                    renderItem={({ item }) => (
+                        <ProductCard
+                            product={item}
+                            onPress={() => { }}
+                            onAddToCart={() => handleAddToCart(item)}
+                        />
+                    )}
+                />
+            )}
 
             {/* Cart FAB */}
             {itemCount > 0 && (
