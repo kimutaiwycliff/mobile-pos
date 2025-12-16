@@ -73,10 +73,13 @@ export function useProductSearch(): UseProductSearchResult {
                         // Fallback: don't block display, just assume no stock info
                     }
 
-                    const inventoryMap = new Map();
+                    const inventoryMap = new Map<string, number>();
                     if (inventoryData) {
                         inventoryData.forEach((item: any) => {
-                            inventoryMap.set(item.product_id, item.quantity);
+                            // If product has variants, stock is distributed.
+                            // We should sum it up for the parent product display.
+                            const existing = inventoryMap.get(item.product_id) || 0;
+                            inventoryMap.set(item.product_id, existing + item.quantity);
                         });
                     }
 

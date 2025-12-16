@@ -4,6 +4,11 @@ import { Modal, Portal, Text, Button, ActivityIndicator, useTheme, RadioButton, 
 import { Product, ProductVariant } from '@/types/database.types';
 import { getProductVariants } from '@/lib/api/products';
 import { formatCurrency } from '@/utils/formatters';
+import { useCartStore } from '@/stores/useCartStore';
+
+interface VariantWithQuantity extends ProductVariant {
+    quantity?: number;
+}
 
 interface VariantSelectionModalProps {
     visible: boolean;
@@ -14,7 +19,8 @@ interface VariantSelectionModalProps {
 
 export function VariantSelectionModal({ visible, onDismiss, product, onSelectVariant }: VariantSelectionModalProps) {
     const theme = useTheme();
-    const [variants, setVariants] = useState<ProductVariant[]>([]);
+    const { locationId } = useCartStore();
+    const [variants, setVariants] = useState<VariantWithQuantity[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +38,7 @@ export function VariantSelectionModal({ visible, onDismiss, product, onSelectVar
         try {
             setLoading(true);
             setError(null);
-            const data = await getProductVariants(product.id);
+            const data = await getProductVariants(product.id, locationId);
             setVariants(data);
         } catch (err: any) {
             setError('Failed to load variants');
@@ -42,7 +48,7 @@ export function VariantSelectionModal({ visible, onDismiss, product, onSelectVar
         }
     };
 
-    const handleSelect = (variant: ProductVariant) => {
+    const handleSelect = (variant: VariantWithQuantity) => {
         onSelectVariant(variant);
     };
 
@@ -89,6 +95,11 @@ export function VariantSelectionModal({ visible, onDismiss, product, onSelectVar
                                     <Text variant="titleMedium" style={{ color: theme.colors.primary, fontWeight: 'bold' }}>
                                         {formatCurrency(item.selling_price || 0)}
                                     </Text>
+                                    {typeof item.quantity === 'number' && (
+                                        <Text variant="labelSmall" style={{ color: item.quantity > 0 ? theme.colors.primary : theme.colors.error, textAlign: 'right' }}>
+                                            {item.quantity > 0 ? `${item.quantity} in stock` : 'Out of stock'}
+                                        </Text>
+                                    )}
                                 </View>
                                 <Divider />
                             </TouchableOpacity>
