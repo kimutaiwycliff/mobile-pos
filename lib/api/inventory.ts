@@ -128,6 +128,34 @@ export async function adjustStock(input: StockAdjustmentInput): Promise<void> {
     }
 }
 
+
+export async function processSaleStockReduction(
+    orderId: string,
+    locationId: string,
+    items: {
+        productId: string;
+        variantId?: string | null;
+        quantity: number;
+    }[]
+): Promise<void> {
+    try {
+        const rpcItems = items.map(item => ({
+            order_id: orderId,
+            location_id: locationId,
+            product_id: item.productId,
+            variant_id: item.variantId || null,
+            quantity: item.quantity
+        }));
+
+        const { error } = await supabase.rpc('decrement_stock', { items: rpcItems });
+
+        if (error) throw error;
+    } catch (error) {
+        console.error('Process sale stock reduction error:', error);
+        throw error;
+    }
+}
+
 function mapReasonToMovementType(reason: string): string {
     switch (reason) {
         case 'receive': return 'purchase';

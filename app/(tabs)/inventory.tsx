@@ -1,11 +1,12 @@
 // Inventory Screen
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, RefreshControl } from 'react-native';
 import { Text, useTheme, Searchbar, FAB, Card, Chip, IconButton } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlashList } from '@shopify/flash-list';
 import { getInventory, adjustStock, InventoryItem } from '@/lib/api/inventory';
+import { supabase } from '@/lib/supabase/client';
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
 import { useCartStore } from '@/stores/useCartStore'; // For accessing default location ID
 
@@ -24,6 +25,29 @@ export default function InventoryScreen() {
         queryKey: ['inventory', locationId, searchQuery],
         queryFn: () => getInventory(locationId, searchQuery),
     });
+
+    // Realtime subscription
+    useEffect(() => {
+        const channel = supabase
+            .channel('inventory-list-updates')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'inventory',
+                    filter: locationId ? `location_id=eq.${locationId}` : undefined
+                },
+                () => {
+                    queryClient.invalidateQueries({ queryKey: ['inventory'] });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [locationId, queryClient]);
 
     // Adjust Stock Mutation
     const adjustMutation = useMutation({

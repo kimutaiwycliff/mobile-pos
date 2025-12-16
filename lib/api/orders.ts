@@ -3,6 +3,7 @@
 import { supabase } from '@/lib/supabase/client';
 import { Order, OrderItem, Payment } from '@/types/database.types';
 import { CartItem } from '@/types/cart.types';
+import { processSaleStockReduction } from '@/lib/api/inventory';
 
 interface CreateOrderInput {
     customerId: string | null;
@@ -104,8 +105,16 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
         if (paymentsError) throw paymentsError;
         if (!payments) throw new Error('Failed to create payments');
 
-        // 4. TODO: Update inventory (reduce stock)
-        // This would be done via a Supabase function or trigger
+        // 4. Update inventory (reduce stock)
+        await processSaleStockReduction(
+            order.id,
+            input.locationId,
+            input.items.map(item => ({
+                productId: item.productId,
+                variantId: item.variantId,
+                quantity: item.quantity
+            }))
+        );
 
         return {
             order,
