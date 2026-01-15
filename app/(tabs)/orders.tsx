@@ -10,6 +10,7 @@ import { Order } from '@/types/database.types';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import { LayawayList } from '@/components/orders/LayawayList';
 import { PaymentModal } from '@/components/orders/PaymentModal';
+import { OrderDetailsModal } from '@/components/orders/OrderDetailsModal';
 
 export default function OrdersScreen() {
     const theme = useTheme();
@@ -17,6 +18,7 @@ export default function OrdersScreen() {
     const [filter, setFilter] = useState('all'); // all, layaway, completed
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [isSubmittingInfo, setIsSubmittingInfo] = useState(false);
 
     // Fetch orders
@@ -46,6 +48,11 @@ export default function OrdersScreen() {
         setPaymentModalVisible(true);
     };
 
+    const handleOrderPress = (order: Order) => {
+        setSelectedOrder(order);
+        setDetailsModalVisible(true);
+    };
+
     const submitPayment = (amount: number, method: 'cash' | 'mpesa') => {
         if (!selectedOrder) return;
 
@@ -60,7 +67,7 @@ export default function OrdersScreen() {
         const isLayaway = item.status === 'layaway';
 
         return (
-            <Card style={styles.card}>
+            <Card style={styles.card} onPress={() => handleOrderPress(item)}>
                 <Card.Content>
                     <View style={styles.row}>
                         <View>
@@ -159,6 +166,13 @@ export default function OrdersScreen() {
                 onConfirm={submitPayment}
                 order={selectedOrder}
                 isProcessing={isSubmittingInfo}
+            />
+
+            {/* Order Details Modal */}
+            <OrderDetailsModal
+                visible={detailsModalVisible}
+                onDismiss={() => setDetailsModalVisible(false)}
+                order={selectedOrder}
             />
         </View>
     );
