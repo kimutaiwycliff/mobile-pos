@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/luxe-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.posmobile.app",

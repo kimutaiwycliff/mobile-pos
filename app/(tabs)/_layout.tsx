@@ -42,7 +42,7 @@ export default function TabsLayout() {
                 name="orders"
                 options={{
                     title: 'Orders',
-                    href: isAdmin ? '/orders' : null,
+                    // href: isAdmin ? '/orders' : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="receipt-text" size={size} color={color} />
                     ),
