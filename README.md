@@ -75,6 +75,18 @@ A production-grade mobile Point of Sale (POS) and Inventory Management applicati
 
    # Create development build for Android
    eas build --profile development --platform android
+
+   # Create production build for iOS
+   eas build --profile production --platform ios
+
+   # Create production build for Android
+   eas build --profile production --platform android
+
+   # Create preview build for iOS
+   eas build --platform ios --profile preview
+
+   # Create preview build for Android
+   eas build --platform android --profile preview
    ```
 
 5. **Run the app**
