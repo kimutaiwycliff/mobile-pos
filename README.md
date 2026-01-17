@@ -14,6 +14,34 @@ A production-grade mobile Point of Sale (POS) and Inventory Management applicati
 - 🔍 **Fast Search**: Algolia-powered product and inventory search
 - 💾 **Offline Support**: MMKV for fast local storage
 
+## Screenshots
+
+Get a glimpse of the app's intuitive interface and powerful features:
+
+### 🛒 Point of Sale
+![POS Checkout Screen - Fast checkout with barcode scanning, product search, and multiple payment options](./assets/POS.jpeg)
+*Modern POS interface with real-time inventory updates and quick checkout flow*
+
+### 📦 Inventory Management
+![Inventory Dashboard - Real-time stock tracking across multiple locations with low stock alerts](./assets/Inventory.jpeg)
+*Comprehensive inventory management with stock movements, adjustments, and multi-location tracking*
+
+### 📊 Analytics & Reports
+![Sales Analytics - Revenue tracking, top products, and payment method breakdown](./assets/Analytics.jpeg)
+*Insightful analytics dashboard with sales trends, revenue reports, and performance metrics*
+
+### 💰 Layaway Orders
+![Layaway Management - Track partial payments and reserved inventory](./assets/layaways.jpeg)
+*Layaway order management with payment tracking and automated inventory reservation*
+
+### 👥 Customer Management
+![Customer Profiles - Order history and loyalty points tracking](./assets/orders.jpeg)
+*Customer relationship management with detailed profiles, order history, and loyalty rewards*
+
+### 🌙 Dark Mode
+![Dark Mode Interface - Beautiful dark theme throughout the app](./assets/darkmode.jpeg)
+*Elegant dark mode with system preference detection for comfortable viewing*
+
 ## Tech Stack
 
 - **Framework**: Expo SDK (React Native)
