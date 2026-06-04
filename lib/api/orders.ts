@@ -30,6 +30,18 @@ interface CreateOrderResponse {
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResponse> {
+    // Never create an order with no line items. This is what produced the
+    // historical "0 items sold" orders: the order row was committed and then
+    // the order_items insert failed (RLS / dropped mobile connection) with no
+    // rollback, leaving an orphaned order.
+    if (!input.items || input.items.length === 0) {
+        throw new Error('Cannot create an order with no items.');
+    }
+
+    // Track the created order id so we can roll it back if items never get saved.
+    let createdOrderId: string | null = null;
+    let itemsCreated = false;
+
     try {
         const isLayaway = input.isLayaway || false;
         const status = isLayaway ? 'layaway' : 'completed';
@@ -65,6 +77,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
         if (orderError) throw orderError;
         if (!order) throw new Error('Failed to create order');
 
+        createdOrderId = order.id;
+
         // 2. Create order items
         const orderItemsData = input.items.map((item) => ({
             order_id: order.id,
@@ -87,7 +101,9 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
             .select();
 
         if (itemsError) throw itemsError;
-        if (!orderItems) throw new Error('Failed to create order items');
+        if (!orderItems || orderItems.length === 0) throw new Error('Failed to create order items');
+
+        itemsCreated = true;
 
         // 3. Create payments (Multiple)
         const paymentsData = input.payments.map(p => ({
@@ -123,6 +139,18 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
         };
     } catch (error) {
         console.error('Create order error:', error);
+        // Roll back the order only if its items were never saved, so it can
+        // never appear with 0 items. Once items exist the order is valid and a
+        // later (payment / inventory) failure must not delete a real sale.
+        if (createdOrderId && !itemsCreated) {
+            const { error: rollbackError } = await supabase
+                .from('orders')
+                .delete()
+                .eq('id', createdOrderId);
+            if (rollbackError) {
+                console.error('Failed to roll back order', createdOrderId, rollbackError);
+            }
+        }
         throw error;
     }
 }
