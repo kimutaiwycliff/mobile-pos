@@ -38,6 +38,16 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
         throw new Error('Cannot create an order with no items.');
     }
 
+    // order_items.sku is NOT NULL. A missing sku means the cart item came from
+    // an incomplete source (e.g. a stale Algolia record). Fail early with a
+    // clear message instead of letting Postgres reject the insert.
+    const itemMissingSku = input.items.find((item) => !item.sku);
+    if (itemMissingSku) {
+        throw new Error(
+            `"${itemMissingSku.name}" is missing a SKU. Remove it and re-add it from search, then try again.`
+        );
+    }
+
     // Track the created order id so we can roll it back if items never get saved.
     let createdOrderId: string | null = null;
     let itemsCreated = false;

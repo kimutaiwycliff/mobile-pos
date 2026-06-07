@@ -46,12 +46,36 @@ export default function POSScreen() {
         clearSearch();
     };
 
-    const handleAddToCart = (product: Product) => {
+    const handleAddToCart = async (product: Product) => {
         if (product.has_variants) {
             setSelectedProductForVariant(product);
             setShowVariantModal(true);
-        } else {
-            addItem(product);
+            return;
+        }
+
+        // Search results come from Algolia, whose records can be stale or
+        // incomplete (e.g. missing sku / prices). Re-fetch the authoritative
+        // row from Supabase before adding to the cart so we never store a null
+        // sku (order_items.sku is NOT NULL) or a wrong price. This mirrors the
+        // barcode-scan and variant paths, which already read from the DB.
+        try {
+            const { data: fresh, error: fetchError } = await supabase
+                .from('products')
+                .select('*')
+                .eq('id', product.id)
+                .single();
+
+            if (fetchError || !fresh) {
+                Alert.alert('Error', 'Could not load product details. Please try again.');
+                return;
+            }
+
+            // Preserve the stock quantity already resolved for the current
+            // location by the search hook; the products row has no inventory.
+            addItem({ ...(fresh as Product), quantity: (product as any).quantity } as Product);
+        } catch (err) {
+            console.error('Add to cart error:', err);
+            Alert.alert('Error', 'Could not add item to cart. Please try again.');
         }
     };
 
